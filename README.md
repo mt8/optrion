@@ -277,13 +277,17 @@ Contributions are welcome. Please open an issue first to discuss what you'd like
 
 ```bash
 # Development setup
-git clone https://github.com/your-username/optrion.git
+git clone https://github.com/mt8/optrion.git
 cd optrion
 composer install
 npm install
-npm run dev    # watch mode for React admin UI
 
-# Run tests
+# Start local WordPress (Docker required)
+npm run env:start        # http://localhost:8888  (admin / password)
+npm run env:stop
+npm run env:clean        # reset both dev & tests environments
+
+# Run tests (inside the tests-wordpress container)
 composer test
 ```
 
