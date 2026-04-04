@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+set -e
+
+# 1) Lint staged PHP files
+npx --no-install lint-staged
+
+# 2) Run the full PHPUnit suite inside wp-env (only if env is already started)
+WP_ENV_HASH=$(node -e "const c=require('crypto');console.log(c.createHash('md5').update(process.cwd()).digest('hex'))" 2>/dev/null || echo "")
+WP_ENV_DIR="$HOME/.wp-env/$WP_ENV_HASH"
+
+if [ -n "$WP_ENV_HASH" ] && [ -f "$WP_ENV_DIR/docker-compose.yml" ] && command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+	if npx --no-install wp-env run tests-cli --env-cwd=wp-content/plugins/optrion composer test; then
+		:
+	else
+		echo "✖ PHPUnit failed. Commit aborted."
+		echo "  Tip: run \`npm run env:start\` first."
+		exit 1
+	fi
+else
+	echo "⚠ wp-env not started — skipping PHPUnit pre-commit run."
+	echo "  Run \`npm run env:start\` to enable PHPUnit on commit. CI will run the full suite."
+fi
