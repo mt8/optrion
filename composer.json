@@ -7,7 +7,10 @@
         "php": ">=7.4"
     },
     "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
         "phpunit/phpunit": "^9.6",
+        "wp-coding-standards/wpcs": "^3.1",
         "yoast/phpunit-polyfills": "^2.0"
     },
     "autoload": {
