@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+	bootstrap="tests/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	beStrictAboutCoversAnnotation="true"
+	beStrictAboutOutputDuringTests="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	beStrictAboutTodoAnnotatedTests="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	convertDeprecationsToExceptions="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	verbose="true"
+	>
+	<testsuites>
+		<testsuite name="optrion">
+			<directory suffix=".php">tests/</directory>
+			<exclude>tests/bootstrap.php</exclude>
+		</testsuite>
+	</testsuites>
+	<coverage>
+		<include>
+			<directory suffix=".php">includes/</directory>
+			<file>optrion.php</file>
+		</include>
+	</coverage>
+</phpunit>
