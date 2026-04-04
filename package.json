@@ -1,0 +1,16 @@
+{
+  "name": "optrion",
+  "version": "0.1.0",
+  "description": "Track, score, quarantine, and clean orphaned options in your WordPress database.",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "env": "wp-env",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "env:clean": "wp-env clean all"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0"
+  }
+}
