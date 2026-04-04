@@ -5,6 +5,7 @@
 	<file>optrion.php</file>
 	<file>uninstall.php</file>
 	<file>includes/</file>
+	<file>tests/</file>
 
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
