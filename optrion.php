@@ -37,6 +37,7 @@ require_once OPTRION_DIR . 'includes/class-quarantine.php';
 require_once OPTRION_DIR . 'includes/class-exporter.php';
 require_once OPTRION_DIR . 'includes/class-importer.php';
 require_once OPTRION_DIR . 'includes/class-cleaner.php';
+require_once OPTRION_DIR . 'includes/class-rest-controller.php';
 require_once OPTRION_DIR . 'includes/class-plugin.php';
 
 register_activation_hook( __FILE__, array( \Optrion\Plugin::class, 'activate' ) );

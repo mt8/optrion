@@ -26,6 +26,7 @@ final class Plugin {
 		Schema::maybe_upgrade();
 		Tracker::boot();
 		add_action( Quarantine::CRON_HOOK, array( Quarantine::class, 'process_expired' ) );
+		add_action( 'rest_api_init', array( Rest_Controller::class, 'register_routes' ) );
 	}
 
 	/**
