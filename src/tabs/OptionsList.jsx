@@ -220,6 +220,7 @@ const OptionsList = () => {
 						{ label: __( 'All', 'optrion' ), value: '' },
 						{ label: 'plugin', value: 'plugin' },
 						{ label: 'theme', value: 'theme' },
+						{ label: 'widget', value: 'widget' },
 						{ label: 'core', value: 'core' },
 						{ label: 'unknown', value: 'unknown' },
 					] }

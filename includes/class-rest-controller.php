@@ -67,7 +67,7 @@ final class Rest_Controller {
 						),
 						'owner_type' => array(
 							'type' => 'string',
-							'enum' => array( 'plugin', 'theme', 'core', 'unknown' ),
+							'enum' => array( 'plugin', 'theme', 'core', 'widget', 'unknown' ),
 						),
 						'search'     => array(
 							'type' => 'string',
@@ -256,6 +256,8 @@ final class Rest_Controller {
 		$params = array();
 		// Transients are managed by the Transient API and are out of scope for Optrion.
 		$where[] = "option_name NOT LIKE '\\_transient\\_%' AND option_name NOT LIKE '\\_site\\_transient\\_%'";
+		// Quarantined options have their own tab; hide them from the main list.
+		$where[] = "option_name NOT LIKE '\\_optrion\\_q\\_\\_%'";
 		if ( '' !== $search ) {
 			$where[]  = 'option_name LIKE %s';
 			$params[] = '%' . $wpdb->esc_like( $search ) . '%';

@@ -369,6 +369,8 @@ final class CLI_Command {
 		$params = array();
 		// Transients are managed by the Transient API and are out of scope.
 		$where[] = "option_name NOT LIKE '\\_transient\\_%' AND option_name NOT LIKE '\\_site\\_transient\\_%'";
+		// Quarantined options are managed separately.
+		$where[] = "option_name NOT LIKE '\\_optrion\\_q\\_\\_%'";
 		if ( '' !== $search ) {
 			$where[]  = 'option_name LIKE %s';
 			$params[] = '%' . $wpdb->esc_like( $search ) . '%';
