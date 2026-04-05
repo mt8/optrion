@@ -12,7 +12,7 @@ namespace Optrion;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds the "Tools → Optrion" submenu page and enqueues the React app bundle.
+ * Adds the top-level "Optrion" admin menu and enqueues the React app bundle.
  */
 final class Admin_Page {
 
@@ -27,6 +27,11 @@ final class Admin_Page {
 	public const ROOT_ID = 'optrion-admin-root';
 
 	/**
+	 * Hook suffix produced by add_menu_page() for the Optrion screen.
+	 */
+	public const HOOK_SUFFIX = 'toplevel_page_' . self::MENU_SLUG;
+
+	/**
 	 * Registers admin hooks.
 	 */
 	public static function register(): void {
@@ -35,17 +40,37 @@ final class Admin_Page {
 	}
 
 	/**
-	 * Adds the submenu entry under Tools.
+	 * Adds the top-level Optrion menu with its branded icon.
 	 */
 	public static function add_menu(): void {
-		add_submenu_page(
-			'tools.php',
+		add_menu_page(
 			__( 'Optrion', 'optrion' ),
 			__( 'Optrion', 'optrion' ),
 			'manage_options',
 			self::MENU_SLUG,
-			array( self::class, 'render' )
+			array( self::class, 'render' ),
+			self::menu_icon(),
+			80
 		);
+	}
+
+	/**
+	 * Returns the admin menu icon as a data URI, or a dashicon fallback.
+	 *
+	 * WordPress recolors SVG menu icons via CSS filters when the fill matches
+	 * the admin scheme (#a7aaad), so the source SVG uses that neutral tone.
+	 *
+	 * @return string
+	 */
+	private static function menu_icon(): string {
+		$icon_path = OPTRION_DIR . 'assets/optrion-menu-icon.svg';
+		if ( is_readable( $icon_path ) ) {
+			$svg = file_get_contents( $icon_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			if ( is_string( $svg ) && '' !== $svg ) {
+				return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			}
+		}
+		return 'dashicons-admin-generic';
 	}
 
 	/**
@@ -66,7 +91,7 @@ final class Admin_Page {
 	 * @param string $hook_suffix Current admin page hook.
 	 */
 	public static function enqueue_assets( string $hook_suffix ): void {
-		if ( 'tools_page_' . self::MENU_SLUG !== $hook_suffix ) {
+		if ( self::HOOK_SUFFIX !== $hook_suffix ) {
 			return;
 		}
 
