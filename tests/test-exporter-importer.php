@@ -184,6 +184,19 @@ class ExporterImporterTest extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'round_trip', false ) );
 		$result = Importer::import( $json, false );
 		$this->assertSame( 1, $result['added'] );
+
+		// Verify the raw row exists in wp_options.
+		global $wpdb;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$raw = $wpdb->get_var(
+			$wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'round_trip' )
+		);
+		// phpcs:enable
+		$this->assertNotNull( $raw, 'Row should exist in wp_options after import.' );
+		$this->assertSame( array( 'a', 'b', 'c' ), maybe_unserialize( $raw ) );
+
+		// Clear object cache fully and then query via get_option.
+		wp_cache_flush();
 		$this->assertSame( array( 'a', 'b', 'c' ), get_option( 'round_trip' ) );
 	}
 }
