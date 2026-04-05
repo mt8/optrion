@@ -24,6 +24,7 @@ final class Plugin {
 	public static function boot(): void {
 		load_plugin_textdomain( 'optrion', false, dirname( plugin_basename( OPTRION_FILE ) ) . '/languages' );
 		Schema::maybe_upgrade();
+		Tracker::boot();
 	}
 
 	/**
