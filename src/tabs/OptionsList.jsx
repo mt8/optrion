@@ -6,6 +6,7 @@ import {
 	SelectControl,
 	Spinner,
 	CheckboxControl,
+	Tooltip,
 } from '@wordpress/components';
 
 import { api } from '../api';
@@ -38,6 +39,26 @@ const formatLastRead = ( iso ) => {
 	return d.toLocaleString();
 };
 
+const SCORE_AXIS_LABELS = {
+	owner: __( 'Owner state (max 40)', 'optrion' ),
+	freshness: __( 'Freshness (max 25)', 'optrion' ),
+	transient: __( 'Transient prefix (max 10)', 'optrion' ),
+	autoload_waste: __( 'Autoload waste (max 15)', 'optrion' ),
+	size: __( 'Size (max 10)', 'optrion' ),
+};
+
+const buildScoreTooltip = ( breakdown ) => {
+	if ( ! breakdown ) {
+		return '';
+	}
+	return Object.entries( breakdown )
+		.map( ( [ axis, pts ] ) => {
+			const label = SCORE_AXIS_LABELS[ axis ] || axis;
+			return `${ label }: ${ pts }`;
+		} )
+		.join( '\n' );
+};
+
 const SORTABLE_COLUMNS = [
 	{ key: 'name', label: __( 'option_name', 'optrion' ) },
 	{ key: 'owner', label: __( 'Owner', 'optrion' ) },
@@ -59,6 +80,7 @@ const OptionsList = () => {
 	const [ ownerType, setOwnerType ] = useState( '' );
 	const [ orderby, setOrderby ] = useState( 'score' );
 	const [ order, setOrder ] = useState( 'desc' );
+	const [ showCore, setShowCore ] = useState( false );
 
 	const load = useCallback( () => {
 		setLoading( true );
@@ -86,6 +108,10 @@ const OptionsList = () => {
 	}, [ load ] );
 
 	const isProtected = ( item ) => item && item.owner && item.owner.type === 'core';
+
+	const visibleItems = showCore
+		? items
+		: items.filter( ( item ) => ! isProtected( item ) );
 
 	const toggle = ( item ) => {
 		if ( isProtected( item ) ) {
@@ -202,6 +228,11 @@ const OptionsList = () => {
 						setOwnerType( v );
 					} }
 				/>
+				<CheckboxControl
+					label={ __( 'Show WordPress-Core', 'optrion' ) }
+					checked={ showCore }
+					onChange={ setShowCore }
+				/>
 			</div>
 			<div className="optrion-bulk">
 				<Button
@@ -262,7 +293,7 @@ const OptionsList = () => {
 						</tr>
 					</thead>
 					<tbody>
-						{ items.map( ( item ) => (
+						{ visibleItems.map( ( item ) => (
 							<tr
 								key={ item.option_name }
 								className={
@@ -320,7 +351,16 @@ const OptionsList = () => {
 								<td
 									className={ labelClass( item.score.label ) }
 								>
-									{ item.score.total }
+									<Tooltip
+										text={ buildScoreTooltip(
+											item.score.breakdown
+										) }
+										position="top center"
+									>
+										<span className="optrion-score-value">
+											{ item.score.total }
+										</span>
+									</Tooltip>
 								</td>
 							</tr>
 						) ) }
