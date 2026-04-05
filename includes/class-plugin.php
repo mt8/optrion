@@ -23,6 +23,7 @@ final class Plugin {
 	 */
 	public static function boot(): void {
 		load_plugin_textdomain( 'optrion', false, dirname( plugin_basename( OPTRION_FILE ) ) . '/languages' );
+		Schema::maybe_upgrade();
 	}
 
 	/**
@@ -31,7 +32,7 @@ final class Plugin {
 	 * Creates custom tables and schedules cron.
 	 */
 	public static function activate(): void {
-		// Implemented in a later task (#8).
+		Schema::install();
 	}
 
 	/**
