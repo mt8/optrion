@@ -307,6 +307,7 @@ final class Rest_Controller {
 					$score['owner'],
 					array(
 						'active' => self::owner_is_active( $score['owner'], $context ),
+						'name'   => Scorer::resolve_owner_name( $score['owner'], $context ),
 					)
 				),
 				'tracking'    => $tracking,
@@ -372,6 +373,7 @@ final class Rest_Controller {
 					$score['owner'],
 					array(
 						'active' => self::owner_is_active( $score['owner'], $context ),
+						'name'   => Scorer::resolve_owner_name( $score['owner'], $context ),
 					)
 				),
 				'tracking'     => $tracking,

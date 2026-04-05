@@ -292,7 +292,7 @@ const OptionsList = () => {
 									<code>{ item.option_name }</code>
 								</td>
 								<td>
-									{ item.owner.slug || '—' }
+									{ item.owner.name || item.owner.slug || '—' }
 									<span className="optrion-owner-type">
 										{ ' ' }
 										({ item.owner.type })

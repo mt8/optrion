@@ -45,6 +45,14 @@ class ScorerTest extends WP_UnitTestCase {
 			'installed_plugin_slugs' => array( 'woocommerce', 'old-plugin' ),
 			'active_theme_slugs'     => array( 'twentytwentyfour' ),
 			'installed_theme_slugs'  => array( 'twentytwentyfour', 'oldtheme' ),
+			'plugin_names'           => array(
+				'woocommerce' => 'WooCommerce',
+				'old-plugin'  => 'Old Plugin',
+			),
+			'theme_names'            => array(
+				'twentytwentyfour' => 'Twenty Twenty-Four',
+				'oldtheme'         => 'Old Theme',
+			),
 		);
 	}
 
@@ -317,6 +325,52 @@ class ScorerTest extends WP_UnitTestCase {
 		);
 		$result   = Scorer::score( $option, $tracking, $this->context, $this->now );
 		$this->assertSame( Scorer::OWNER_TYPE_UNKNOWN, $result['owner']['type'] );
+	}
+
+	/**
+	 * Resolve_owner_name returns the human-readable name from plugin/theme metadata.
+	 */
+	public function test_resolve_owner_name_from_metadata(): void {
+		$this->assertSame(
+			'WooCommerce',
+			Scorer::resolve_owner_name(
+				array(
+					'type' => 'plugin',
+					'slug' => 'woocommerce',
+				),
+				$this->context
+			)
+		);
+		$this->assertSame(
+			'Twenty Twenty-Four',
+			Scorer::resolve_owner_name(
+				array(
+					'type' => 'theme',
+					'slug' => 'twentytwentyfour',
+				),
+				$this->context
+			)
+		);
+		$this->assertSame(
+			'WordPress',
+			Scorer::resolve_owner_name(
+				array(
+					'type' => 'core',
+					'slug' => 'wordpress',
+				),
+				$this->context
+			)
+		);
+		$this->assertSame(
+			'',
+			Scorer::resolve_owner_name(
+				array(
+					'type' => 'unknown',
+					'slug' => '',
+				),
+				$this->context
+			)
+		);
 	}
 
 	/**
