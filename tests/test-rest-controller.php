@@ -35,8 +35,9 @@ class RestControllerTest extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		Schema::install();
-		Rest_Controller::register_routes();
-		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		// Accessing rest_get_server() triggers rest_api_init, which the plugin
+		// already hooked into during Plugin::boot() at bootstrap time.
+		rest_get_server();
 		$this->admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 	}
 
