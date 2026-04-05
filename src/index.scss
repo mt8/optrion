@@ -1,12 +1,94 @@
 .optrion-app {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	padding: 16px 20px;
 	margin-top: 16px;
 
-	&__meta {
-		color: #50575e;
-		font-size: 13px;
+	.optrion-tabs {
+		margin-bottom: 16px;
+	}
+
+	.optrion-tab-panel {
+		background: #fff;
+		border: 1px solid #c3c4c7;
+		border-radius: 0 4px 4px 4px;
+		padding: 16px 20px;
+	}
+
+	.optrion-error {
+		color: #b32d2e;
+		background: #fcf0f1;
+		padding: 8px 12px;
+		border-left: 4px solid #b32d2e;
+	}
+
+	.optrion-cards {
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.optrion-card {
+		flex: 1 1 200px;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		padding: 12px 16px;
+		background: #f6f7f7;
+
+		&__label {
+			font-size: 12px;
+			color: #50575e;
+		}
+
+		&__value {
+			font-size: 24px;
+			font-weight: 600;
+			margin-top: 4px;
+		}
+	}
+
+	.optrion-filters {
+		display: flex;
+		gap: 12px;
+		align-items: flex-end;
+		margin-bottom: 12px;
+		flex-wrap: wrap;
+
+		> * {
+			flex: 0 0 180px;
+		}
+	}
+
+	.optrion-bulk {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		margin-bottom: 12px;
+
+		&__hint {
+			margin-left: auto;
+			color: #50575e;
+			font-size: 13px;
+		}
+	}
+
+	.optrion-pager {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		margin-top: 12px;
+	}
+
+	.optrion-owner-type {
+		color: #646970;
+		font-size: 11px;
+	}
+
+	.optrion-score--red { color: #b32d2e; font-weight: 600; }
+	.optrion-score--orange { color: #d98500; font-weight: 600; }
+	.optrion-score--yellow { color: #a48f00; }
+	.optrion-score--green { color: #2a6a2e; }
+
+	.optrion-import__actions {
+		display: flex;
+		gap: 8px;
+		margin: 12px 0;
 	}
 }
