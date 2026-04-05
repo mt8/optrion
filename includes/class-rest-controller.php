@@ -502,6 +502,23 @@ final class Rest_Controller {
 			ARRAY_A
 		);
 		// phpcs:enable
+
+		// Enrich each row with tracking data so the UI can flag options that are
+		// still being accessed after quarantine.
+		$names        = wp_list_pluck( $rows, 'original_name' );
+		$tracking_map = empty( $names ) ? array() : self::tracking_map( $names );
+		foreach ( $rows as &$row ) {
+			$tracking       = $tracking_map[ $row['original_name'] ] ?? null;
+			$last_read      = $tracking ? (string) ( $tracking['last_read_at'] ?? '' ) : '';
+			$still_accessed = '' !== $last_read
+				&& '' !== $row['quarantined_at']
+				&& $last_read > $row['quarantined_at'];
+
+			$row['last_read_at']   = $last_read;
+			$row['still_accessed'] = $still_accessed;
+		}
+		unset( $row );
+
 		return new WP_REST_Response( array( 'items' => (array) $rows ) );
 	}
 

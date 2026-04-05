@@ -237,6 +237,14 @@ final class Quarantine {
 			return new WP_Error( 'optrion_not_active', __( 'Quarantine entry is not active.', 'optrion' ) );
 		}
 
+		// Block deletion when tracking shows the option was read after quarantine.
+		if ( self::is_still_accessed( $manifest ) ) {
+			return new WP_Error(
+				'optrion_still_accessed',
+				__( 'This option is still being accessed. Restore it instead of deleting.', 'optrion' )
+			);
+		}
+
 		global $wpdb;
 		$renamed = self::RENAME_PREFIX . $manifest['original_name'];
 
@@ -410,6 +418,34 @@ final class Quarantine {
 	public static function configured_expiry_action(): string {
 		$action = (string) get_option( self::EXPIRY_ACTION_OPTION, 'restore' );
 		return in_array( $action, array( 'restore', 'delete', 'keep' ), true ) ? $action : 'restore';
+	}
+
+	/**
+	 * Explains why an option cannot be quarantined. Used for error messages.
+	 *
+	 * @param string $option_name Option name.
+	 */
+	/**
+	 * Checks whether a quarantined option is still being read.
+	 *
+	 * Returns true when the tracking table shows a last_read_at that is
+	 * more recent than the quarantine timestamp, which means something is
+	 * still trying to load the option.
+	 *
+	 * @param array{original_name:string,quarantined_at:string} $manifest Manifest row.
+	 */
+	public static function is_still_accessed( array $manifest ): bool {
+		global $wpdb;
+		$table = Schema::tracking_table();
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$last_read = $wpdb->get_var(
+			$wpdb->prepare( "SELECT last_read_at FROM {$table} WHERE option_name = %s", $manifest['original_name'] )
+		);
+		// phpcs:enable
+		if ( empty( $last_read ) || empty( $manifest['quarantined_at'] ) ) {
+			return false;
+		}
+		return $last_read > $manifest['quarantined_at'];
 	}
 
 	/**

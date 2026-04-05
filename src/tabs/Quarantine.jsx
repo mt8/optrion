@@ -28,10 +28,19 @@ const Quarantine = () => {
 		api.restoreQuarantine( [ id ] ).then( load );
 	};
 	const destroy = ( id ) => {
-		if ( ! window.confirm( __( 'Permanently delete this quarantined option?', 'optrion' ) ) ) {
+		if (
+			! window.confirm(
+				__(
+					'Permanently delete this quarantined option?',
+					'optrion'
+				)
+			)
+		) {
 			return;
 		}
-		api.deleteQuarantine( [ id ] ).then( load );
+		api.deleteQuarantine( [ id ] )
+			.then( load )
+			.catch( ( e ) => setError( e.message || String( e ) ) );
 	};
 
 	return (
@@ -41,7 +50,10 @@ const Quarantine = () => {
 				value={ status }
 				options={ [
 					{ label: __( 'Active', 'optrion' ), value: 'active' },
-					{ label: __( 'Restored', 'optrion' ), value: 'restored' },
+					{
+						label: __( 'Restored', 'optrion' ),
+						value: 'restored',
+					},
 					{ label: __( 'Deleted', 'optrion' ), value: 'deleted' },
 				] }
 				onChange={ setStatus }
@@ -56,6 +68,7 @@ const Quarantine = () => {
 							<th>{ __( 'Original name', 'optrion' ) }</th>
 							<th>{ __( 'Quarantined at', 'optrion' ) }</th>
 							<th>{ __( 'Expires at', 'optrion' ) }</th>
+							<th>{ __( 'Last accessed', 'optrion' ) }</th>
 							<th>{ __( 'Score', 'optrion' ) }</th>
 							<th>{ __( 'Actions', 'optrion' ) }</th>
 						</tr>
@@ -65,19 +78,46 @@ const Quarantine = () => {
 							<tr key={ row.id }>
 								<td>
 									<code>{ row.original_name }</code>
+									{ row.still_accessed && (
+										<span
+											className="optrion-badge optrion-badge--warning"
+											title={ __(
+												'This option was accessed after quarantine. It may still be in use.',
+												'optrion'
+											) }
+										>
+											{ __( 'still accessed', 'optrion' ) }
+										</span>
+									) }
 								</td>
 								<td>{ row.quarantined_at }</td>
 								<td>{ row.expires_at }</td>
+								<td>{ row.last_read_at || '—' }</td>
 								<td>{ row.score_at_quarantine }</td>
 								<td>
 									{ 'active' === status && (
 										<>
-											<Button variant="secondary" onClick={ () => restore( row.id ) }>
+											<Button
+												variant="secondary"
+												onClick={ () =>
+													restore( row.id )
+												}
+											>
 												{ __( 'Restore', 'optrion' ) }
 											</Button>
-											<Button isDestructive onClick={ () => destroy( row.id ) }>
-												{ __( 'Delete', 'optrion' ) }
-											</Button>
+											{ ! row.still_accessed && (
+												<Button
+													isDestructive
+													onClick={ () =>
+														destroy( row.id )
+													}
+												>
+													{ __(
+														'Delete',
+														'optrion'
+													) }
+												</Button>
+											) }
 										</>
 									) }
 								</td>
@@ -85,7 +125,9 @@ const Quarantine = () => {
 						) ) }
 						{ rows.length === 0 && (
 							<tr>
-								<td colSpan="5">{ __( 'No entries.', 'optrion' ) }</td>
+								<td colSpan="6">
+									{ __( 'No entries.', 'optrion' ) }
+								</td>
 							</tr>
 						) }
 					</tbody>
