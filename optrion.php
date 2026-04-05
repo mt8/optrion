@@ -38,6 +38,7 @@ require_once OPTRION_DIR . 'includes/class-exporter.php';
 require_once OPTRION_DIR . 'includes/class-importer.php';
 require_once OPTRION_DIR . 'includes/class-cleaner.php';
 require_once OPTRION_DIR . 'includes/class-rest-controller.php';
+require_once OPTRION_DIR . 'includes/class-admin-page.php';
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once OPTRION_DIR . 'includes/class-cli-command.php';
 }

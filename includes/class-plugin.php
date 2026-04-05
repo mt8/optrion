@@ -27,6 +27,7 @@ final class Plugin {
 		Tracker::boot();
 		add_action( Quarantine::CRON_HOOK, array( Quarantine::class, 'process_expired' ) );
 		add_action( 'rest_api_init', array( Rest_Controller::class, 'register_routes' ) );
+		Admin_Page::register();
 	}
 
 	/**
