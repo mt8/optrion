@@ -25,6 +25,7 @@ final class Plugin {
 		load_plugin_textdomain( 'optrion', false, dirname( plugin_basename( OPTRION_FILE ) ) . '/languages' );
 		Schema::maybe_upgrade();
 		Tracker::boot();
+		add_action( Quarantine::CRON_HOOK, array( Quarantine::class, 'process_expired' ) );
 	}
 
 	/**
@@ -34,6 +35,7 @@ final class Plugin {
 	 */
 	public static function activate(): void {
 		Schema::install();
+		Quarantine::schedule_cron();
 	}
 
 	/**
@@ -42,6 +44,6 @@ final class Plugin {
 	 * Unschedules cron. Does not drop tables.
 	 */
 	public static function deactivate(): void {
-		// Implemented in a later task.
+		Quarantine::unschedule_cron();
 	}
 }
