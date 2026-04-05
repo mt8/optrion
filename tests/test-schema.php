@@ -20,17 +20,6 @@ use WP_UnitTestCase;
 class SchemaTest extends WP_UnitTestCase {
 
 	/**
-	 * Ensures a clean slate by dropping the plugin tables before each test.
-	 */
-	public function set_up(): void {
-		parent::set_up();
-		global $wpdb;
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . Schema::tracking_table() ); // phpcs:ignore WordPress.DB
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . Schema::quarantine_table() ); // phpcs:ignore WordPress.DB
-		delete_option( Schema::VERSION_OPTION );
-	}
-
-	/**
 	 * The installer creates both custom tables.
 	 */
 	public function test_install_creates_tables(): void {
@@ -59,27 +48,55 @@ class SchemaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The upgrader installs tables when the version option is missing.
+	 * The upgrader runs install when the version option is missing.
 	 */
 	public function test_maybe_upgrade_installs_when_missing(): void {
-		$this->assertFalse( $this->table_exists( Schema::tracking_table() ) );
+		delete_option( Schema::VERSION_OPTION );
+		$fired = $this->track_install_action();
+
 		Schema::maybe_upgrade();
-		$this->assertTrue( $this->table_exists( Schema::tracking_table() ) );
-		$this->assertTrue( $this->table_exists( Schema::quarantine_table() ) );
+
+		$this->assertSame( 1, $fired(), 'install() should fire once when version is missing' );
+		$this->assertSame( Schema::DB_VERSION, get_option( Schema::VERSION_OPTION ) );
+	}
+
+	/**
+	 * The upgrader runs install when the stored version is stale.
+	 */
+	public function test_maybe_upgrade_installs_when_stale(): void {
+		update_option( Schema::VERSION_OPTION, '0.0.0-old' );
+		$fired = $this->track_install_action();
+
+		Schema::maybe_upgrade();
+
+		$this->assertSame( 1, $fired(), 'install() should fire once when version is stale' );
+		$this->assertSame( Schema::DB_VERSION, get_option( Schema::VERSION_OPTION ) );
 	}
 
 	/**
 	 * The upgrader is a no-op when the stored version matches.
 	 */
 	public function test_maybe_upgrade_skips_when_current(): void {
-		Schema::install();
-		// Drop a table to detect whether maybe_upgrade reinstalled it.
-		global $wpdb;
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . Schema::tracking_table() ); // phpcs:ignore WordPress.DB
-		$this->assertFalse( $this->table_exists( Schema::tracking_table() ) );
+		update_option( Schema::VERSION_OPTION, Schema::DB_VERSION );
+		$fired = $this->track_install_action();
 
 		Schema::maybe_upgrade();
-		$this->assertFalse( $this->table_exists( Schema::tracking_table() ) );
+
+		$this->assertSame( 0, $fired(), 'install() should not fire when version matches' );
+	}
+
+	/**
+	 * Adds a temporary action listener and returns a closure yielding the call count.
+	 */
+	private function track_install_action(): callable {
+		$count    = 0;
+		$listener = static function () use ( &$count ): void {
+			++$count;
+		};
+		add_action( 'optrion_schema_installed', $listener );
+		return static function () use ( &$count ): int {
+			return $count;
+		};
 	}
 
 	/**

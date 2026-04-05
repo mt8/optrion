@@ -95,6 +95,13 @@ final class Schema {
 		dbDelta( $quarantine_sql );
 
 		update_option( self::VERSION_OPTION, self::DB_VERSION, false );
+
+		/**
+		 * Fires after the Optrion schema has been installed or refreshed.
+		 *
+		 * @param string $db_version The schema version that was installed.
+		 */
+		do_action( 'optrion_schema_installed', self::DB_VERSION );
 	}
 
 	/**
