@@ -85,13 +85,18 @@ const OptionsList = () => {
 		load();
 	}, [ load ] );
 
-	const toggle = ( name ) => {
+	const isProtected = ( item ) => item && item.owner && item.owner.type === 'core';
+
+	const toggle = ( item ) => {
+		if ( isProtected( item ) ) {
+			return;
+		}
 		setSelected( ( prev ) => {
 			const next = new Set( prev );
-			if ( next.has( name ) ) {
-				next.delete( name );
+			if ( next.has( item.option_name ) ) {
+				next.delete( item.option_name );
 			} else {
-				next.add( name );
+				next.add( item.option_name );
 			}
 			return next;
 		} );
@@ -258,14 +263,28 @@ const OptionsList = () => {
 					</thead>
 					<tbody>
 						{ items.map( ( item ) => (
-							<tr key={ item.option_name }>
+							<tr
+								key={ item.option_name }
+								className={
+									isProtected( item )
+										? 'optrion-row--protected'
+										: ''
+								}
+							>
 								<td>
 									<CheckboxControl
 										checked={ selected.has(
 											item.option_name
 										) }
-										onChange={ () =>
-											toggle( item.option_name )
+										disabled={ isProtected( item ) }
+										onChange={ () => toggle( item ) }
+										aria-label={
+											isProtected( item )
+												? __(
+														'WordPress core option — protected',
+														'optrion'
+												  )
+												: undefined
 										}
 									/>
 								</td>
@@ -278,6 +297,17 @@ const OptionsList = () => {
 										{ ' ' }
 										({ item.owner.type })
 									</span>
+									{ isProtected( item ) && (
+										<span
+											className="optrion-badge optrion-badge--protected"
+											title={ __(
+												'WordPress core option — cannot be selected or deleted.',
+												'optrion'
+											) }
+										>
+											{ __( 'protected', 'optrion' ) }
+										</span>
+									) }
 								</td>
 								<td>{ item.autoload }</td>
 								<td>{ item.size_human }</td>

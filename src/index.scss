@@ -81,6 +81,26 @@
 		font-size: 11px;
 	}
 
+	.optrion-badge {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 1px 6px;
+		border-radius: 8px;
+		font-size: 10px;
+		line-height: 1.6;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.optrion-badge--protected {
+		background: #dcdcde;
+		color: #3c434a;
+	}
+
+	.optrion-row--protected td {
+		color: #646970;
+	}
+
 	.optrion-sort-button {
 		background: none;
 		border: 0;
