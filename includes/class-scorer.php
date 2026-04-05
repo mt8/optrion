@@ -95,14 +95,18 @@ final class Scorer {
 		}
 
 		$installed_plugins = array();
+		$plugin_names      = array();
 		if ( function_exists( 'get_plugins' ) ) {
-			foreach ( array_keys( get_plugins() ) as $entry ) {
-				$installed_plugins[] = self::plugin_file_to_slug( (string) $entry );
+			foreach ( get_plugins() as $entry => $data ) {
+				$slug                  = self::plugin_file_to_slug( (string) $entry );
+				$installed_plugins[]   = $slug;
+				$plugin_names[ $slug ] = isset( $data['Name'] ) ? (string) $data['Name'] : $slug;
 			}
 		}
 
 		$active_theme_slugs    = array();
 		$installed_theme_slugs = array();
+		$theme_names           = array();
 		if ( function_exists( 'wp_get_theme' ) ) {
 			$current = wp_get_theme();
 			if ( $current && $current->exists() ) {
@@ -114,8 +118,9 @@ final class Scorer {
 			}
 		}
 		if ( function_exists( 'wp_get_themes' ) ) {
-			foreach ( wp_get_themes() as $stylesheet => $_theme ) {
-				$installed_theme_slugs[] = (string) $stylesheet;
+			foreach ( wp_get_themes() as $stylesheet => $theme_obj ) {
+				$installed_theme_slugs[]             = (string) $stylesheet;
+				$theme_names[ (string) $stylesheet ] = (string) $theme_obj->get( 'Name' );
 			}
 		}
 
@@ -124,7 +129,33 @@ final class Scorer {
 			'installed_plugin_slugs' => array_values( array_unique( $installed_plugins ) ),
 			'active_theme_slugs'     => array_values( array_unique( $active_theme_slugs ) ),
 			'installed_theme_slugs'  => array_values( array_unique( $installed_theme_slugs ) ),
+			'plugin_names'           => $plugin_names,
+			'theme_names'            => $theme_names,
 		);
+	}
+
+	/**
+	 * Resolves a human-readable display name for an owner.
+	 *
+	 * Reads Plugin Name from the plugin header or Theme Name from style.css
+	 * via the name maps built by build_context().
+	 *
+	 * @param array{type:string,slug:string}                $owner   Inferred owner.
+	 * @param array{plugin_names?:array,theme_names?:array} $context Site context.
+	 *
+	 * @return string Display name, or the raw slug if no metadata is available.
+	 */
+	public static function resolve_owner_name( array $owner, array $context ): string {
+		if ( 'core' === $owner['type'] ) {
+			return 'WordPress';
+		}
+		if ( 'plugin' === $owner['type'] && isset( $context['plugin_names'][ $owner['slug'] ] ) ) {
+			return $context['plugin_names'][ $owner['slug'] ];
+		}
+		if ( 'theme' === $owner['type'] && isset( $context['theme_names'][ $owner['slug'] ] ) ) {
+			return $context['theme_names'][ $owner['slug'] ];
+		}
+		return ! empty( $owner['slug'] ) ? $owner['slug'] : '';
 	}
 
 	/**
