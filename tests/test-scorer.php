@@ -232,16 +232,23 @@ class ScorerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Totals are clipped at 100.
+	 * Totals accumulate to the design maximum of 100.
 	 */
-	public function test_total_is_capped_at_100(): void {
+	public function test_total_accumulates_to_100(): void {
 		$option = array(
 			'option_name' => '_transient_old_plugin_huge_blob',
 			'size_bytes'  => 500 * 1024,
 			'autoload'    => 'yes',
 		);
-		// Owner=plugin inactive (40) + freshness=25 (no record) + transient=10 + autoload_waste=15 + size=10 = 100.
-		$result = Scorer::score( $option, null, $this->context, $this->now );
+		// Use tracker-sourced owner so the transient prefix does not block attribution.
+		$tracking = array(
+			'last_read_at' => null,
+			'read_count'   => 0,
+			'last_reader'  => 'old-plugin',
+			'reader_type'  => 'plugin',
+		);
+		// Owner(inactive plugin)=40 + freshness(no record)=25 + transient=10 + autoload_waste=15 + size(>100KB)=10 = 100.
+		$result = Scorer::score( $option, $tracking, $this->context, $this->now );
 		$this->assertLessThanOrEqual( 100, $result['total'] );
 		$this->assertSame( 100, $result['total'] );
 	}
