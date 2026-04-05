@@ -28,6 +28,7 @@ final class Scorer {
 	public const OWNER_TYPE_PLUGIN   = 'plugin';
 	public const OWNER_TYPE_THEME    = 'theme';
 	public const OWNER_TYPE_CORE     = 'core';
+	public const OWNER_TYPE_WIDGET   = 'widget';
 	public const OWNER_TYPE_UNKNOWN  = 'unknown';
 
 	/**
@@ -177,7 +178,16 @@ final class Scorer {
 			);
 		}
 
-		// 2. Prefix matches against installed plugin/theme slugs. Prefer plugin
+		// 2. Widget options: `widget_*` entries are stored by register_widget().
+		if ( 0 === strpos( $option_name, 'widget_' ) ) {
+			$widget_id = substr( $option_name, 7 ); // strip "widget_" prefix.
+			return array(
+				'type' => self::OWNER_TYPE_WIDGET,
+				'slug' => $widget_id,
+			);
+		}
+
+		// 3. Prefix matches against installed plugin/theme slugs. Prefer plugin
 		// over theme when a slug happens to exist in both.
 		foreach ( ( $context['installed_plugin_slugs'] ?? array() ) as $slug ) {
 			if ( '' !== $slug && self::name_starts_with_slug( $option_name, $slug ) ) {
@@ -232,6 +242,8 @@ final class Scorer {
 	private static function score_owner( array $owner, array $context ): int {
 		switch ( $owner['type'] ) {
 			case self::OWNER_TYPE_CORE:
+				return 0;
+			case self::OWNER_TYPE_WIDGET:
 				return 0;
 			case self::OWNER_TYPE_UNKNOWN:
 				return 20;
