@@ -114,15 +114,23 @@ class QuarantineTest extends WP_UnitTestCase {
 	 */
 	public function test_restore_preserves_original_autoload(): void {
 		add_option( 'auto_thing', 'val', '', 'yes' );
+		global $wpdb;
+		// Capture whatever autoload value WP normalized 'yes' into (WP 6.6+ uses 'on').
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$before = $wpdb->get_var(
+			$wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", 'auto_thing' )
+		);
+		// phpcs:enable
+
 		$id = Quarantine::quarantine( 'auto_thing' );
 		Quarantine::restore( (int) $id );
 
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$autoload = $wpdb->get_var(
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$after = $wpdb->get_var(
 			$wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", 'auto_thing' )
 		);
-		$this->assertSame( 'yes', $autoload );
+		// phpcs:enable
+		$this->assertSame( $before, $after );
 	}
 
 	/**
