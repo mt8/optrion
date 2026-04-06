@@ -37,6 +37,7 @@ final class Admin_Page {
 	public static function register(): void {
 		add_action( 'admin_menu', array( self::class, 'add_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_assets' ) );
+		add_action( 'admin_head', array( self::class, 'menu_icon_css' ) );
 	}
 
 	/**
@@ -52,6 +53,20 @@ final class Admin_Page {
 			self::menu_icon(),
 			80
 		);
+	}
+
+	/**
+	 * Prevents WordPress from recoloring the multi-colored Optrion menu icon.
+	 *
+	 * WordPress applies CSS filters to SVG menu icons to match the admin color
+	 * scheme. This overrides those filters so the branded colors are preserved.
+	 */
+	public static function menu_icon_css(): void {
+		echo '<style>'
+			. '#adminmenu .toplevel_page_' . esc_attr( self::MENU_SLUG ) . ' .wp-menu-image img,'
+			. '#adminmenu .toplevel_page_' . esc_attr( self::MENU_SLUG ) . ' .wp-menu-image svg'
+			. '{filter:none!important;}'
+			. '</style>';
 	}
 
 	/**
