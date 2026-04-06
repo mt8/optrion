@@ -49,12 +49,39 @@ jobs:
           node-version: '20'
           cache: npm
 
-      - name: Install npm deps and build
-        run: npm ci && npm run build
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install deps and build
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist --no-dev --optimize-autoloader
+          npm ci && npm run build
+
+      - name: Prepare plugin directory
+        run: |
+          mkdir -p /tmp/plugin-check/optrion
+          rsync -a ./ /tmp/plugin-check/optrion/ \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='tests' \
+            --exclude='.gitignore' \
+            --exclude='.editorconfig' \
+            --exclude='.distignore' \
+            --exclude='phpcs.xml.dist' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='composer.lock' \
+            --exclude='package-lock.json' \
+            --exclude='package.json' \
+            --exclude='composer.json'
 
       - uses: wordpress/plugin-check-action@v1
         with:
-          exclude-directories: 'node_modules,.github,tests'
+          build-dir: '/tmp/plugin-check/optrion'
           ignore-warnings: true
 
   phpunit:
