@@ -37,6 +37,52 @@ jobs:
       - name: Run PHPCS
         run: composer lint
 
+  plugin-check:
+    name: Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install deps and build
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist --no-dev --optimize-autoloader
+          npm ci && npm run build
+
+      - name: Prepare plugin directory
+        run: |
+          mkdir -p /tmp/plugin-check/optrion
+          rsync -a ./ /tmp/plugin-check/optrion/ \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.husky' \
+            --exclude='tests' \
+            --exclude='.*' \
+            --exclude='phpcs.xml.dist' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='composer.lock' \
+            --exclude='package-lock.json' \
+            --exclude='package.json' \
+            --exclude='composer.json'
+
+      - uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: '/tmp/plugin-check/optrion'
+          ignore-warnings: true
+
   phpunit:
     name: PHPUnit (WP ${{ matrix.wp }} / PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
