@@ -172,6 +172,11 @@ final class Cleaner {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 			@file_put_contents( $index, "<?php\n// Silence is golden.\n" );
 		}
+		$htaccess = trailingslashit( $dir ) . '.htaccess';
+		if ( ! file_exists( $htaccess ) ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			@file_put_contents( $htaccess, "Deny from all\n" );
+		}
 		return true;
 	}
 }

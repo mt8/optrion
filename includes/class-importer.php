@@ -21,6 +21,16 @@ defined( 'ABSPATH' ) || exit;
 final class Importer {
 
 	/**
+	 * Maximum accepted JSON payload size in bytes (2 MB).
+	 */
+	private const MAX_PAYLOAD_BYTES = 2 * 1024 * 1024;
+
+	/**
+	 * Maximum nesting depth for json_decode.
+	 */
+	private const MAX_JSON_DEPTH = 64;
+
+	/**
 	 * Performs a dry-run analysis of the payload.
 	 *
 	 * @param string $json Raw JSON string from an Optrion export.
@@ -161,7 +171,18 @@ final class Importer {
 	 * @return array{options:array<int,array<string,mixed>>}|WP_Error
 	 */
 	private static function parse( string $json ) {
-		$decoded = json_decode( $json, true );
+		if ( strlen( $json ) > self::MAX_PAYLOAD_BYTES ) {
+			return new WP_Error(
+				'optrion_payload_too_large',
+				sprintf(
+					/* translators: %s: human-readable size limit. */
+					__( 'Import payload exceeds the %s size limit.', 'optrion' ),
+					size_format( self::MAX_PAYLOAD_BYTES )
+				)
+			);
+		}
+
+		$decoded = json_decode( $json, true, self::MAX_JSON_DEPTH );
 		if ( ! is_array( $decoded ) ) {
 			return new WP_Error( 'optrion_invalid_json', __( 'Export payload is not valid JSON.', 'optrion' ) );
 		}
