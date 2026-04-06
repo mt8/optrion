@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { Button, SelectControl, Spinner } from '@wordpress/components';
+import { Button, SelectControl, Spinner, Notice } from '@wordpress/components';
 
 import { api } from '../api';
 
@@ -9,6 +9,7 @@ const Quarantine = () => {
 	const [ status, setStatus ] = useState( 'active' );
 	const [ loading, setLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
+	const [ notice, setNotice ] = useState( null );
 
 	const load = useCallback( () => {
 		setLoading( true );
@@ -25,7 +26,12 @@ const Quarantine = () => {
 	}, [ load ] );
 
 	const restore = ( id ) => {
-		api.restoreQuarantine( [ id ] ).then( load );
+		api.restoreQuarantine( [ id ] )
+			.then( () => {
+				setNotice( { type: 'success', message: __( 'Option restored.', 'optrion' ) } );
+				load();
+			} )
+			.catch( ( e ) => setNotice( { type: 'error', message: e.message || String( e ) } ) );
 	};
 	const destroy = ( id ) => {
 		if (
@@ -39,12 +45,24 @@ const Quarantine = () => {
 			return;
 		}
 		api.deleteQuarantine( [ id ] )
-			.then( load )
-			.catch( ( e ) => setError( e.message || String( e ) ) );
+			.then( () => {
+				setNotice( { type: 'success', message: __( 'Option permanently deleted.', 'optrion' ) } );
+				load();
+			} )
+			.catch( ( e ) => setNotice( { type: 'error', message: e.message || String( e ) } ) );
 	};
 
 	return (
 		<div className="optrion-quarantine">
+			{ notice && (
+				<Notice
+					status={ notice.type }
+					isDismissible
+					onDismiss={ () => setNotice( null ) }
+				>
+					{ notice.message }
+				</Notice>
+			) }
 			<SelectControl
 				label={ __( 'Status', 'optrion' ) }
 				value={ status }
