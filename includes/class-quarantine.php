@@ -186,24 +186,44 @@ final class Quarantine {
 		}
 
 		global $wpdb;
-		$renamed = self::RENAME_PREFIX . $manifest['original_name'];
+		$original = $manifest['original_name'];
+		$renamed  = self::RENAME_PREFIX . $original;
 
+		// Check whether the original option was recreated while quarantined
+		// (e.g. WordPress core re-creates missing options on the next load).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$updated = $wpdb->update(
-			$wpdb->options,
-			array(
-				'option_name' => $manifest['original_name'],
-				'autoload'    => $manifest['original_autoload'],
-			),
-			array( 'option_name' => $renamed ),
-			array( '%s', '%s' ),
-			array( '%s' )
+		$original_exists = (bool) $wpdb->get_var(
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name = %s", $original )
 		);
-		if ( false === $updated || 0 === $updated ) {
-			return new WP_Error( 'optrion_restore_failed', __( 'Could not rename the option row back.', 'optrion' ) );
+
+		if ( $original_exists ) {
+			// The original was recreated. Drop the quarantined copy and mark as
+			// restored since the option is already back in its rightful place.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->delete(
+				$wpdb->options,
+				array( 'option_name' => $renamed ),
+				array( '%s' )
+			);
+		} else {
+			// Normal path: rename the quarantined row back to its original name.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$updated = $wpdb->update(
+				$wpdb->options,
+				array(
+					'option_name' => $original,
+					'autoload'    => $manifest['original_autoload'],
+				),
+				array( 'option_name' => $renamed ),
+				array( '%s', '%s' ),
+				array( '%s' )
+			);
+			if ( false === $updated || 0 === $updated ) {
+				return new WP_Error( 'optrion_restore_failed', __( 'Could not rename the option row back.', 'optrion' ) );
+			}
 		}
 
-		wp_cache_delete( $manifest['original_name'], 'options' );
+		wp_cache_delete( $original, 'options' );
 		wp_cache_delete( 'alloptions', 'options' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

@@ -44,6 +44,7 @@ final class CoreOptions {
 		'avatar_default',
 		'avatar_rating',
 		'blacklist_keys',
+		'can_compress_scripts',
 		'blog_charset',
 		'blog_public',
 		'blogdescription',
