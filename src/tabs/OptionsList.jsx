@@ -6,6 +6,7 @@ import {
 	SelectControl,
 	Spinner,
 	CheckboxControl,
+	Notice,
 } from '@wordpress/components';
 
 import { api } from '../api';
@@ -52,6 +53,7 @@ const OptionsList = () => {
 	const [ total, setTotal ] = useState( 0 );
 	const [ loading, setLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
+	const [ notice, setNotice ] = useState( null );
 	const [ selected, setSelected ] = useState( () => new Set() );
 	const [ page, setPage ] = useState( 1 );
 	const [ search, setSearch ] = useState( '' );
@@ -122,12 +124,32 @@ const OptionsList = () => {
 		) {
 			return;
 		}
-		api.deleteOptions( Array.from( selected ) ).then( load );
+		api.deleteOptions( Array.from( selected ) )
+			.then( ( res ) => {
+				const count = res && res.deleted ? res.deleted.length : selected.size;
+				setNotice( {
+					type: 'success',
+					/* translators: %d: number of deleted options. */
+					message: sprintf( __( '%d option(s) deleted.', 'optrion' ), count ),
+				} );
+				load();
+			} )
+			.catch( ( e ) => setNotice( { type: 'error', message: e.message || String( e ) } ) );
 	};
 
 	const bulkQuarantine = () => {
 		if ( ! selected.size ) return;
-		api.createQuarantine( Array.from( selected ), 0 ).then( load );
+		api.createQuarantine( Array.from( selected ), 0 )
+			.then( ( res ) => {
+				const count = res && res.quarantined ? res.quarantined.length : selected.size;
+				setNotice( {
+					type: 'success',
+					/* translators: %d: number of quarantined options. */
+					message: sprintf( __( '%d option(s) quarantined.', 'optrion' ), count ),
+				} );
+				load();
+			} )
+			.catch( ( e ) => setNotice( { type: 'error', message: e.message || String( e ) } ) );
 	};
 
 	const bulkExport = async () => {
@@ -145,8 +167,13 @@ const OptionsList = () => {
 			a.click();
 			a.remove();
 			URL.revokeObjectURL( url );
+			setNotice( {
+				type: 'success',
+				/* translators: %d: number of exported options. */
+				message: sprintf( __( '%d option(s) exported.', 'optrion' ), selected.size ),
+			} );
 		} catch ( e ) {
-			setError( e.message || String( e ) );
+			setNotice( { type: 'error', message: e.message || String( e ) } );
 		}
 	};
 
@@ -250,6 +277,15 @@ const OptionsList = () => {
 					) }
 				</span>
 			</div>
+			{ notice && (
+				<Notice
+					status={ notice.type }
+					isDismissible
+					onDismiss={ () => setNotice( null ) }
+				>
+					{ notice.message }
+				</Notice>
+			) }
 			{ error && <p className="optrion-error">{ error }</p> }
 			{ loading ? (
 				<Spinner />
