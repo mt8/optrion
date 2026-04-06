@@ -135,6 +135,19 @@ final class Quarantine {
 		$now  = current_time( 'mysql', true );
 		$exp  = gmdate( 'Y-m-d H:i:s', strtotime( $now . ' +' . $days . ' days' ) );
 
+		// Remove any stale manifest row (restored / deleted) so the UNIQUE KEY
+		// on original_name does not block re-quarantine.
+		$q_table = Schema::quarantine_table();
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$q_table} WHERE original_name = %s AND status != %s",
+				$option_name,
+				self::STATUS_ACTIVE
+			)
+		);
+		// phpcs:enable
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$inserted = $wpdb->insert(
 			Schema::quarantine_table(),
