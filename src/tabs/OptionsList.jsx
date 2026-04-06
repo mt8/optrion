@@ -6,7 +6,6 @@ import {
 	SelectControl,
 	Spinner,
 	CheckboxControl,
-	Tooltip,
 } from '@wordpress/components';
 
 import { api } from '../api';
@@ -37,26 +36,6 @@ const formatLastRead = ( iso ) => {
 		return String( iso );
 	}
 	return d.toLocaleString();
-};
-
-const SCORE_AXIS_LABELS = {
-	owner: __( 'Owner state (max 40)', 'optrion' ),
-	freshness: __( 'Freshness (max 25)', 'optrion' ),
-	transient: __( 'Transient prefix (max 10)', 'optrion' ),
-	autoload_waste: __( 'Autoload waste (max 15)', 'optrion' ),
-	size: __( 'Size (max 10)', 'optrion' ),
-};
-
-const buildScoreTooltip = ( breakdown ) => {
-	if ( ! breakdown ) {
-		return '';
-	}
-	return Object.entries( breakdown )
-		.map( ( [ axis, pts ] ) => {
-			const label = SCORE_AXIS_LABELS[ axis ] || axis;
-			return `${ label }: ${ pts }`;
-		} )
-		.join( '\n' );
 };
 
 const SORTABLE_COLUMNS = [
@@ -204,10 +183,15 @@ const OptionsList = () => {
 						setSearch( v );
 					} }
 				/>
-				<TextControl
-					type="number"
-					label={ __( 'Score ≥', 'optrion' ) }
+				<SelectControl
+					label={ __( 'Score', 'optrion' ) }
 					value={ scoreMin }
+					options={ [
+						{ label: __( 'All scores', 'optrion' ), value: '' },
+						{ label: __( '≥20 — Review (may be unused)', 'optrion' ), value: '20' },
+						{ label: __( '≥50 — Likely unused', 'optrion' ), value: '50' },
+						{ label: __( '≥80 — Almost certainly unused', 'optrion' ), value: '80' },
+					] }
 					onChange={ ( v ) => {
 						setPage( 1 );
 						setScoreMin( v );
@@ -352,16 +336,7 @@ const OptionsList = () => {
 								<td
 									className={ labelClass( item.score.label ) }
 								>
-									<Tooltip
-										text={ buildScoreTooltip(
-											item.score.breakdown
-										) }
-										position="top center"
-									>
-										<span className="optrion-score-value">
-											{ item.score.total }
-										</span>
-									</Tooltip>
+									{ item.score.total }
 								</td>
 							</tr>
 						) ) }
