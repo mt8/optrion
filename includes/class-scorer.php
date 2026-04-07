@@ -187,7 +187,27 @@ final class Scorer {
 			);
 		}
 
-		// 3. Prefix matches against installed plugin/theme slugs. Prefer plugin
+		// 3. Tracking data (backtrace-based). The tracker records which
+		// plugin/theme directory the get_option() call originated from,
+		// which is more reliable than prefix matching (e.g. Yoast SEO
+		// uses `wpseo` prefix but lives in `wordpress-seo/`). Trust
+		// tracking only when it positively identifies a plugin or theme.
+		if (
+			null !== $tracking
+			&& ! empty( $tracking['last_reader'] )
+			&& in_array(
+				(string) ( $tracking['reader_type'] ?? '' ),
+				array( self::OWNER_TYPE_PLUGIN, self::OWNER_TYPE_THEME ),
+				true
+			)
+		) {
+			return array(
+				'type' => (string) $tracking['reader_type'],
+				'slug' => (string) $tracking['last_reader'],
+			);
+		}
+
+		// 4. Prefix matches against installed plugin/theme slugs. Prefer plugin
 		// over theme when a slug happens to exist in both.
 		foreach ( ( $context['installed_plugin_slugs'] ?? array() ) as $slug ) {
 			if ( '' !== $slug && self::name_starts_with_slug( $option_name, $slug ) ) {
@@ -205,26 +225,6 @@ final class Scorer {
 					'slug' => $slug,
 				);
 			}
-		}
-
-		// 3. Tracking data is a weaker signal: "who read this option" is often
-		// WordPress core even for plugin-owned options (core loads alloptions,
-		// then plugins consume them via filters without appearing in the
-		// backtrace). Trust tracking only when it positively identifies a
-		// plugin or theme caller.
-		if (
-			null !== $tracking
-			&& ! empty( $tracking['last_reader'] )
-			&& in_array(
-				(string) ( $tracking['reader_type'] ?? '' ),
-				array( self::OWNER_TYPE_PLUGIN, self::OWNER_TYPE_THEME ),
-				true
-			)
-		) {
-			return array(
-				'type' => (string) $tracking['reader_type'],
-				'slug' => (string) $tracking['last_reader'],
-			);
 		}
 
 		return array(

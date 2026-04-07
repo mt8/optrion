@@ -262,13 +262,12 @@ class ScorerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Owner inference prefers a plugin-slug prefix match over tracker data,
-	 * because "who read it last" is a noisier signal than the option name
-	 * itself. For options whose name does not match any installed plugin,
-	 * tracker data with a concrete plugin caller is still used — see
-	 * {@see self::test_owner_inference_falls_back_to_tracker_caller()}.
+	 * Tracker backtrace data takes precedence over prefix matching.
+	 *
+	 * This is essential for plugins whose slug differs from the option prefix
+	 * (e.g. Yoast SEO uses `wpseo` options but lives in `wordpress-seo/`).
 	 */
-	public function test_owner_inference_prefers_prefix_over_tracker(): void {
+	public function test_owner_inference_prefers_tracker_over_prefix(): void {
 		$option   = array(
 			'option_name' => 'woocommerce_settings',
 			'size_bytes'  => 10,
@@ -282,14 +281,14 @@ class ScorerTest extends WP_UnitTestCase {
 		);
 		$result   = Scorer::score( $option, $tracking, $this->context, $this->now );
 		$this->assertSame( Scorer::OWNER_TYPE_PLUGIN, $result['owner']['type'] );
-		$this->assertSame( 'woocommerce', $result['owner']['slug'] );
+		$this->assertSame( 'custom-mu', $result['owner']['slug'] );
 	}
 
 	/**
-	 * When no prefix / registry rule matches, a concrete plugin/theme caller
-	 * in the tracker record is used to attribute ownership.
+	 * Tracker data with a concrete plugin/theme caller is used even when no
+	 * prefix or registry rule would match.
 	 */
-	public function test_owner_inference_falls_back_to_tracker_caller(): void {
+	public function test_owner_inference_uses_tracker_caller(): void {
 		$option   = array(
 			'option_name' => 'opaque_blob_42',
 			'size_bytes'  => 10,
@@ -374,7 +373,7 @@ class ScorerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Owner inference falls back to prefix matching when tracker is unknown.
+	 * Owner inference falls back to prefix matching when no tracker data exists.
 	 */
 	public function test_owner_inference_uses_prefix_match(): void {
 		$option = array(
