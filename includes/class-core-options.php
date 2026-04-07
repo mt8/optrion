@@ -15,8 +15,8 @@ defined( 'ABSPATH' ) || exit;
  * Static registry of option names that WordPress core itself manages.
  *
  * The list is used by the Scorer (see docs/DESIGN.md §4.2) to classify
- * an option as `owner=core`, and by the Cleaner / Quarantine modules to
- * lock out destructive operations on core-owned rows.
+ * an option as `accessor=core`, and by the Cleaner / Quarantine modules to
+ * lock out destructive operations on core rows.
  *
  * Sourced from the WordPress Codex "Option Reference" page; entries are
  * the stable option names registered by WordPress core on a fresh install.

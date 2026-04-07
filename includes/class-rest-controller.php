@@ -41,35 +41,35 @@ final class Rest_Controller {
 					'callback'            => array( self::class, 'list_options' ),
 					'permission_callback' => $auth,
 					'args'                => array(
-						'page'       => array(
+						'page'          => array(
 							'type'    => 'integer',
 							'default' => 1,
 						),
-						'per_page'   => array(
+						'per_page'      => array(
 							'type'    => 'integer',
 							'default' => 50,
 						),
-						'orderby'    => array(
+						'orderby'       => array(
 							'type'    => 'string',
 							'default' => 'score',
-							'enum'    => array( 'score', 'name', 'size', 'last_read', 'owner', 'autoload' ),
+							'enum'    => array( 'score', 'name', 'size', 'last_read', 'accessor', 'autoload' ),
 						),
-						'order'      => array(
+						'order'         => array(
 							'type'    => 'string',
 							'default' => 'desc',
 							'enum'    => array( 'asc', 'desc' ),
 						),
-						'score_min'  => array(
+						'score_min'     => array(
 							'type' => 'integer',
 						),
-						'score_max'  => array(
+						'score_max'     => array(
 							'type' => 'integer',
 						),
-						'owner_type' => array(
+						'accessor_type' => array(
 							'type' => 'string',
 							'enum' => array( 'plugin', 'theme', 'core', 'widget', 'unknown' ),
 						),
-						'search'     => array(
+						'search'        => array(
 							'type' => 'string',
 						),
 					),
@@ -244,13 +244,13 @@ final class Rest_Controller {
 	 */
 	public static function list_options( WP_REST_Request $req ): WP_REST_Response {
 		global $wpdb;
-		$page       = max( 1, (int) $req['page'] );
-		$per_page   = min( 200, max( 1, (int) $req['per_page'] ) );
-		$offset     = ( $page - 1 ) * $per_page;
-		$search     = (string) $req['search'];
-		$score_min  = null !== $req['score_min'] ? (int) $req['score_min'] : null;
-		$score_max  = null !== $req['score_max'] ? (int) $req['score_max'] : null;
-		$owner_type = (string) $req['owner_type'];
+		$page          = max( 1, (int) $req['page'] );
+		$per_page      = min( 200, max( 1, (int) $req['per_page'] ) );
+		$offset        = ( $page - 1 ) * $per_page;
+		$search        = (string) $req['search'];
+		$score_min     = null !== $req['score_min'] ? (int) $req['score_min'] : null;
+		$score_max     = null !== $req['score_max'] ? (int) $req['score_max'] : null;
+		$accessor_type = (string) $req['accessor_type'];
 
 		$where  = array();
 		$params = array();
@@ -299,7 +299,7 @@ final class Rest_Controller {
 			if ( null !== $score_max && $score['total'] > $score_max ) {
 				continue;
 			}
-			if ( '' !== $owner_type && $owner_type !== $score['owner']['type'] ) {
+			if ( '' !== $accessor_type && $accessor_type !== $score['accessor']['type'] ) {
 				continue;
 			}
 			$items[] = array(
@@ -307,11 +307,11 @@ final class Rest_Controller {
 				'autoload'    => (string) $row['autoload'],
 				'size'        => $size,
 				'size_human'  => size_format( $size ),
-				'owner'       => array_merge(
-					$score['owner'],
+				'accessor'    => array_merge(
+					$score['accessor'],
 					array(
-						'active' => self::owner_is_active( $score['owner'], $context ),
-						'name'   => Scorer::resolve_owner_name( $score['owner'], $context ),
+						'active' => self::accessor_is_active( $score['accessor'], $context ),
+						'name'   => Scorer::resolve_accessor_name( $score['accessor'], $context ),
 					)
 				),
 				'tracking'    => $tracking,
@@ -373,11 +373,11 @@ final class Rest_Controller {
 				'autoload'     => (string) $row['autoload'],
 				'size'         => $size,
 				'size_human'   => size_format( $size ),
-				'owner'        => array_merge(
-					$score['owner'],
+				'accessor'     => array_merge(
+					$score['accessor'],
 					array(
-						'active' => self::owner_is_active( $score['owner'], $context ),
-						'name'   => Scorer::resolve_owner_name( $score['owner'], $context ),
+						'active' => self::accessor_is_active( $score['accessor'], $context ),
+						'name'   => Scorer::resolve_accessor_name( $score['accessor'], $context ),
 					)
 				),
 				'tracking'     => $tracking,
@@ -620,9 +620,9 @@ final class Rest_Controller {
 						return $sign * ( $a['size'] <=> $b['size'] );
 					case 'autoload':
 						return $sign * strcmp( (string) $a['autoload'], (string) $b['autoload'] );
-					case 'owner':
-						$oa = (string) ( $a['owner']['type'] ?? '' ) . '/' . (string) ( $a['owner']['slug'] ?? '' );
-						$ob = (string) ( $b['owner']['type'] ?? '' ) . '/' . (string) ( $b['owner']['slug'] ?? '' );
+					case 'accessor':
+						$oa = (string) ( $a['accessor']['type'] ?? '' ) . '/' . (string) ( $a['accessor']['slug'] ?? '' );
+						$ob = (string) ( $b['accessor']['type'] ?? '' ) . '/' . (string) ( $b['accessor']['slug'] ?? '' );
 						return $sign * strcmp( $oa, $ob );
 					case 'last_read':
 						$la = (string) ( $a['tracking']['last_read_at'] ?? '' );
@@ -637,19 +637,19 @@ final class Rest_Controller {
 	}
 
 	/**
-	 * Resolves the "active" flag for an inferred owner.
+	 * Resolves the "active" flag for an inferred accessor.
 	 *
-	 * @param array{type:string,slug:string}                                  $owner   Inferred owner.
-	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context Live site context.
+	 * @param array{type:string,slug:string}                                  $accessor Inferred accessor.
+	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context  Live site context.
 	 */
-	private static function owner_is_active( array $owner, array $context ): bool {
-		switch ( $owner['type'] ) {
+	private static function accessor_is_active( array $accessor, array $context ): bool {
+		switch ( $accessor['type'] ) {
 			case 'core':
 				return true;
 			case 'plugin':
-				return in_array( $owner['slug'], $context['active_plugin_slugs'] ?? array(), true );
+				return in_array( $accessor['slug'], $context['active_plugin_slugs'] ?? array(), true );
 			case 'theme':
-				return in_array( $owner['slug'], $context['active_theme_slugs'] ?? array(), true );
+				return in_array( $accessor['slug'], $context['active_theme_slugs'] ?? array(), true );
 			default:
 				return false;
 		}

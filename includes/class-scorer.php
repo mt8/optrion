@@ -21,15 +21,15 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Scorer {
 
-	public const LABEL_SAFE          = 'safe';
-	public const LABEL_REVIEW        = 'review';
-	public const LABEL_LIKELY_UNUSED = 'likely_unused';
-	public const LABEL_ALMOST_UNUSED = 'almost_unused';
-	public const OWNER_TYPE_PLUGIN   = 'plugin';
-	public const OWNER_TYPE_THEME    = 'theme';
-	public const OWNER_TYPE_CORE     = 'core';
-	public const OWNER_TYPE_WIDGET   = 'widget';
-	public const OWNER_TYPE_UNKNOWN  = 'unknown';
+	public const LABEL_SAFE            = 'safe';
+	public const LABEL_REVIEW          = 'review';
+	public const LABEL_LIKELY_UNUSED   = 'likely_unused';
+	public const LABEL_ALMOST_UNUSED   = 'almost_unused';
+	public const ACCESSOR_TYPE_PLUGIN  = 'plugin';
+	public const ACCESSOR_TYPE_THEME   = 'theme';
+	public const ACCESSOR_TYPE_CORE    = 'core';
+	public const ACCESSOR_TYPE_WIDGET  = 'widget';
+	public const ACCESSOR_TYPE_UNKNOWN = 'unknown';
 
 	/**
 	 * Scores a single option row.
@@ -39,14 +39,14 @@ final class Scorer {
 	 * @param array{active_plugin_slugs:string[],installed_plugin_slugs:string[],active_theme_slugs:string[],installed_theme_slugs:string[]} $context Site context.
 	 * @param DateTimeInterface|null                                                                                                         $now Reference "now" for freshness math. Defaults to current UTC time.
 	 *
-	 * @return array{total:int,label:string,owner:array{type:string,slug:string},breakdown:array<string,int>}
+	 * @return array{total:int,label:string,accessor:array{type:string,slug:string},breakdown:array<string,int>}
 	 */
 	public static function score( array $option, ?array $tracking, array $context, ?DateTimeInterface $now = null ): array {
-		$now   = $now ?? new DateTimeImmutable( 'now' );
-		$owner = self::infer_owner( $option['option_name'], $tracking, $context );
+		$now      = $now ?? new DateTimeImmutable( 'now' );
+		$accessor = self::infer_accessor( $option['option_name'], $tracking, $context );
 
 		$breakdown = array(
-			'owner'          => self::score_owner( $owner, $context ),
+			'accessor'       => self::score_accessor( $accessor, $context ),
 			'freshness'      => self::score_freshness( $tracking, $now ),
 			'transient'      => self::score_transient( $option['option_name'] ),
 			'autoload_waste' => self::score_autoload_waste( $option, $tracking ),
@@ -58,7 +58,7 @@ final class Scorer {
 		return array(
 			'total'     => $total,
 			'label'     => self::label_for( $total ),
-			'owner'     => $owner,
+			'accessor'  => $accessor,
 			'breakdown' => $breakdown,
 		);
 	}
@@ -136,31 +136,31 @@ final class Scorer {
 	}
 
 	/**
-	 * Resolves a human-readable display name for an owner.
+	 * Resolves a human-readable display name for an accessor.
 	 *
 	 * Reads Plugin Name from the plugin header or Theme Name from style.css
 	 * via the name maps built by build_context().
 	 *
-	 * @param array{type:string,slug:string}                $owner   Inferred owner.
-	 * @param array{plugin_names?:array,theme_names?:array} $context Site context.
+	 * @param array{type:string,slug:string}                $accessor Inferred accessor.
+	 * @param array{plugin_names?:array,theme_names?:array} $context  Site context.
 	 *
 	 * @return string Display name, or the raw slug if no metadata is available.
 	 */
-	public static function resolve_owner_name( array $owner, array $context ): string {
-		if ( 'core' === $owner['type'] ) {
+	public static function resolve_accessor_name( array $accessor, array $context ): string {
+		if ( 'core' === $accessor['type'] ) {
 			return 'WordPress';
 		}
-		if ( 'plugin' === $owner['type'] && isset( $context['plugin_names'][ $owner['slug'] ] ) ) {
-			return $context['plugin_names'][ $owner['slug'] ];
+		if ( 'plugin' === $accessor['type'] && isset( $context['plugin_names'][ $accessor['slug'] ] ) ) {
+			return $context['plugin_names'][ $accessor['slug'] ];
 		}
-		if ( 'theme' === $owner['type'] && isset( $context['theme_names'][ $owner['slug'] ] ) ) {
-			return $context['theme_names'][ $owner['slug'] ];
+		if ( 'theme' === $accessor['type'] && isset( $context['theme_names'][ $accessor['slug'] ] ) ) {
+			return $context['theme_names'][ $accessor['slug'] ];
 		}
-		return ! empty( $owner['slug'] ) ? $owner['slug'] : '';
+		return ! empty( $accessor['slug'] ) ? $accessor['slug'] : '';
 	}
 
 	/**
-	 * Infers the owner of an option by consulting tracking data, prefix matches, and the core registry.
+	 * Infers the last accessor of an option by consulting tracking data, prefix matches, and the core registry.
 	 *
 	 * @param string                                                                $option_name Raw option name.
 	 * @param array{last_reader:string,reader_type:string}|null                     $tracking    Tracking record or null.
@@ -168,12 +168,12 @@ final class Scorer {
 	 *
 	 * @return array{type:string,slug:string}
 	 */
-	public static function infer_owner( string $option_name, ?array $tracking, array $context ): array {
+	public static function infer_accessor( string $option_name, ?array $tracking, array $context ): array {
 		// 1. The core registry is the strongest deterministic signal: an exact match
 		// on a curated list of WordPress-shipped option names.
 		if ( CoreOptions::contains( $option_name ) ) {
 			return array(
-				'type' => self::OWNER_TYPE_CORE,
+				'type' => self::ACCESSOR_TYPE_CORE,
 				'slug' => 'wordpress',
 			);
 		}
@@ -182,7 +182,7 @@ final class Scorer {
 		if ( 0 === strpos( $option_name, 'widget_' ) ) {
 			$widget_id = substr( $option_name, 7 ); // strip "widget_" prefix.
 			return array(
-				'type' => self::OWNER_TYPE_WIDGET,
+				'type' => self::ACCESSOR_TYPE_WIDGET,
 				'slug' => $widget_id,
 			);
 		}
@@ -197,7 +197,7 @@ final class Scorer {
 			&& ! empty( $tracking['last_reader'] )
 			&& in_array(
 				(string) ( $tracking['reader_type'] ?? '' ),
-				array( self::OWNER_TYPE_PLUGIN, self::OWNER_TYPE_THEME ),
+				array( self::ACCESSOR_TYPE_PLUGIN, self::ACCESSOR_TYPE_THEME ),
 				true
 			)
 		) {
@@ -212,7 +212,7 @@ final class Scorer {
 		foreach ( ( $context['installed_plugin_slugs'] ?? array() ) as $slug ) {
 			if ( '' !== $slug && self::name_starts_with_slug( $option_name, $slug ) ) {
 				return array(
-					'type' => self::OWNER_TYPE_PLUGIN,
+					'type' => self::ACCESSOR_TYPE_PLUGIN,
 					'slug' => $slug,
 				);
 			}
@@ -221,36 +221,36 @@ final class Scorer {
 		foreach ( ( $context['installed_theme_slugs'] ?? array() ) as $slug ) {
 			if ( '' !== $slug && self::name_starts_with_slug( $option_name, $slug ) ) {
 				return array(
-					'type' => self::OWNER_TYPE_THEME,
+					'type' => self::ACCESSOR_TYPE_THEME,
 					'slug' => $slug,
 				);
 			}
 		}
 
 		return array(
-			'type' => self::OWNER_TYPE_UNKNOWN,
+			'type' => self::ACCESSOR_TYPE_UNKNOWN,
 			'slug' => '',
 		);
 	}
 
 	/**
-	 * Axis 1 — owner state. Max 40 points.
+	 * Axis 1 — accessor state. Max 40 points.
 	 *
-	 * @param array{type:string,slug:string}                                  $owner   Inferred owner.
-	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context Site context.
+	 * @param array{type:string,slug:string}                                  $accessor Inferred accessor.
+	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context  Site context.
 	 */
-	private static function score_owner( array $owner, array $context ): int {
-		switch ( $owner['type'] ) {
-			case self::OWNER_TYPE_CORE:
+	private static function score_accessor( array $accessor, array $context ): int {
+		switch ( $accessor['type'] ) {
+			case self::ACCESSOR_TYPE_CORE:
 				return 0;
-			case self::OWNER_TYPE_WIDGET:
+			case self::ACCESSOR_TYPE_WIDGET:
 				return 0;
-			case self::OWNER_TYPE_UNKNOWN:
+			case self::ACCESSOR_TYPE_UNKNOWN:
 				return 20;
-			case self::OWNER_TYPE_PLUGIN:
-				return in_array( $owner['slug'], $context['active_plugin_slugs'] ?? array(), true ) ? 0 : 40;
-			case self::OWNER_TYPE_THEME:
-				return in_array( $owner['slug'], $context['active_theme_slugs'] ?? array(), true ) ? 0 : 40;
+			case self::ACCESSOR_TYPE_PLUGIN:
+				return in_array( $accessor['slug'], $context['active_plugin_slugs'] ?? array(), true ) ? 0 : 40;
+			case self::ACCESSOR_TYPE_THEME:
+				return in_array( $accessor['slug'], $context['active_theme_slugs'] ?? array(), true ) ? 0 : 40;
 			default:
 				return 0;
 		}

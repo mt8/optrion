@@ -34,8 +34,8 @@ final class CLI_Command {
 	 * [--score-max=<int>]
 	 * : Maximum score threshold.
 	 *
-	 * [--owner-type=<type>]
-	 * : Filter by owner type.
+	 * [--accessor-type=<type>]
+	 * : Filter by accessor type.
 	 * ---
 	 * options:
 	 *   - plugin
@@ -64,13 +64,13 @@ final class CLI_Command {
 	 */
 	public function list( array $args, array $assoc_args ): void {
 		unset( $args );
-		$score_min  = isset( $assoc_args['score-min'] ) ? (int) $assoc_args['score-min'] : null;
-		$score_max  = isset( $assoc_args['score-max'] ) ? (int) $assoc_args['score-max'] : null;
-		$owner_type = isset( $assoc_args['owner-type'] ) ? (string) $assoc_args['owner-type'] : '';
-		$search     = isset( $assoc_args['search'] ) ? (string) $assoc_args['search'] : '';
-		$format     = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
+		$score_min     = isset( $assoc_args['score-min'] ) ? (int) $assoc_args['score-min'] : null;
+		$score_max     = isset( $assoc_args['score-max'] ) ? (int) $assoc_args['score-max'] : null;
+		$accessor_type = isset( $assoc_args['accessor-type'] ) ? (string) $assoc_args['accessor-type'] : '';
+		$search        = isset( $assoc_args['search'] ) ? (string) $assoc_args['search'] : '';
+		$format        = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
 
-		$items = self::collect_scored_rows( $score_min, $score_max, $owner_type, $search );
+		$items = self::collect_scored_rows( $score_min, $score_max, $accessor_type, $search );
 
 		if ( 'ids' === $format ) {
 			WP_CLI::log( implode( "\n", array_column( $items, 'option_name' ) ) );
@@ -80,7 +80,7 @@ final class CLI_Command {
 		Utils\format_items(
 			$format,
 			$items,
-			array( 'option_name', 'score', 'label', 'owner_type', 'owner_slug', 'autoload', 'size_bytes', 'last_read_at' )
+			array( 'option_name', 'score', 'label', 'accessor_type', 'accessor_slug', 'autoload', 'size_bytes', 'last_read_at' )
 		);
 	}
 
@@ -358,12 +358,12 @@ final class CLI_Command {
 	 *
 	 * @param int|null $score_min  Minimum score.
 	 * @param int|null $score_max  Maximum score.
-	 * @param string   $owner_type Owner type filter.
+	 * @param string   $accessor_type Accessor type filter.
 	 * @param string   $search     Substring filter.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private static function collect_scored_rows( ?int $score_min, ?int $score_max, string $owner_type, string $search ): array {
+	private static function collect_scored_rows( ?int $score_min, ?int $score_max, string $accessor_type, string $search ): array {
 		global $wpdb;
 		$where  = array();
 		$params = array();
@@ -411,18 +411,18 @@ final class CLI_Command {
 			if ( null !== $score_max && $s['total'] > $score_max ) {
 				continue;
 			}
-			if ( '' !== $owner_type && $owner_type !== $s['owner']['type'] ) {
+			if ( '' !== $accessor_type && $accessor_type !== $s['accessor']['type'] ) {
 				continue;
 			}
 			$out[] = array(
-				'option_name'  => $name,
-				'score'        => $s['total'],
-				'label'        => $s['label'],
-				'owner_type'   => $s['owner']['type'],
-				'owner_slug'   => $s['owner']['slug'],
-				'autoload'     => (string) $row['autoload'],
-				'size_bytes'   => $size,
-				'last_read_at' => (string) ( $t['last_read_at'] ?? '' ),
+				'option_name'   => $name,
+				'score'         => $s['total'],
+				'label'         => $s['label'],
+				'accessor_type' => $s['accessor']['type'],
+				'accessor_slug' => $s['accessor']['slug'],
+				'autoload'      => (string) $row['autoload'],
+				'size_bytes'    => $size,
+				'last_read_at'  => (string) ( $t['last_read_at'] ?? '' ),
 			);
 		}
 		return $out;

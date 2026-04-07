@@ -105,3 +105,7 @@ msgstr "%s の上書きに失敗しました。"
 #: includes/class-rest-controller.php
 msgid "Option not found."
 msgstr "オプションが見つかりません。"
+
+#: src/tabs/OptionsList.jsx
+msgid "Accessor"
+msgstr "アクセス元"

@@ -41,7 +41,7 @@ const formatLastRead = ( iso ) => {
 
 const SORTABLE_COLUMNS = [
 	{ key: 'name', label: __( 'option_name', 'optrion' ) },
-	{ key: 'owner', label: __( 'Owner', 'optrion' ) },
+	{ key: 'accessor', label: __( 'Accessor', 'optrion' ) },
 	{ key: 'autoload', label: __( 'Autoload', 'optrion' ) },
 	{ key: 'size', label: __( 'Size', 'optrion' ) },
 	{ key: 'last_read', label: __( 'Last accessed', 'optrion' ) },
@@ -58,7 +58,7 @@ const OptionsList = () => {
 	const [ page, setPage ] = useState( 1 );
 	const [ search, setSearch ] = useState( '' );
 	const [ scoreMin, setScoreMin ] = useState( '' );
-	const [ ownerType, setOwnerType ] = useState( '' );
+	const [ accessorType, setAccessorType ] = useState( '' );
 	const [ orderby, setOrderby ] = useState( 'score' );
 	const [ order, setOrder ] = useState( 'desc' );
 	const [ showCore, setShowCore ] = useState( false );
@@ -71,7 +71,7 @@ const OptionsList = () => {
 			per_page: PER_PAGE,
 			search,
 			score_min: scoreMin,
-			owner_type: ownerType,
+			accessor_type: accessorType,
 			orderby,
 			order,
 		} )
@@ -82,13 +82,13 @@ const OptionsList = () => {
 			} )
 			.catch( ( e ) => setError( e.message || String( e ) ) )
 			.finally( () => setLoading( false ) );
-	}, [ page, search, scoreMin, ownerType, orderby, order ] );
+	}, [ page, search, scoreMin, accessorType, orderby, order ] );
 
 	useEffect( () => {
 		load();
 	}, [ load ] );
 
-	const isProtected = ( item ) => item && item.owner && item.owner.type === 'core';
+	const isProtected = ( item ) => item && item.accessor && item.accessor.type === 'core';
 
 	const visibleItems = showCore
 		? items
@@ -184,7 +184,7 @@ const OptionsList = () => {
 		} else {
 			setOrderby( key );
 			setOrder(
-				key === 'name' || key === 'owner' || key === 'autoload'
+				key === 'name' || key === 'accessor' || key === 'autoload'
 					? 'asc'
 					: 'desc'
 			);
@@ -225,8 +225,8 @@ const OptionsList = () => {
 					} }
 				/>
 				<SelectControl
-					label={ __( 'Owner', 'optrion' ) }
-					value={ ownerType }
+					label={ __( 'Accessor', 'optrion' ) }
+					value={ accessorType }
 					options={ [
 						{ label: __( 'All', 'optrion' ), value: '' },
 						{ label: 'plugin', value: 'plugin' },
@@ -237,7 +237,7 @@ const OptionsList = () => {
 					] }
 					onChange={ ( v ) => {
 						setPage( 1 );
-						setOwnerType( v );
+						setAccessorType( v );
 					} }
 				/>
 				<CheckboxControl
@@ -344,10 +344,10 @@ const OptionsList = () => {
 									<code>{ item.option_name }</code>
 								</td>
 								<td>
-									{ item.owner.name || item.owner.slug || '—' }
-									<span className="optrion-owner-type">
+									{ item.accessor.name || item.accessor.slug || '—' }
+									<span className="optrion-accessor-type">
 										{ ' ' }
-										({ item.owner.type })
+										({ item.accessor.type })
 									</span>
 									{ isProtected( item ) && (
 										<span

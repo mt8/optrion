@@ -17,8 +17,8 @@ The `wp_options` table accumulates leftovers from plugins and themes that have b
 Optrion observes which options are actually read at runtime, scores each row on a 0–100 "probably unused" scale, and gives administrators a safe path to delete them:
 
 1. **Observe** — the tracker records when and by whom each option is read.
-2. **Score** — a deterministic 5-axis model (owner state, freshness, transient prefix, autoload waste, size) classifies each option.
-3. **Quarantine** — rename the option temporarily so WordPress and the owning plugin can no longer see it; confirm nothing breaks.
+2. **Score** — a deterministic 5-axis model (accessor state, freshness, transient prefix, autoload waste, size) classifies each option.
+3. **Quarantine** — rename the option temporarily so WordPress and the accessing plugin can no longer see it; confirm nothing breaks.
 4. **Delete** — a JSON backup is written automatically, and the row is removed from both `wp_options` and the tracking table.
 
 Core WordPress options are locked out of destructive operations.
@@ -26,8 +26,9 @@ Core WordPress options are locked out of destructive operations.
 == Features ==
 
 * Per-option read tracking via the `alloptions` filter and dynamically registered `option_{$name}` filters
-* 5-axis scoring with owner inference (live tracker data → slug prefix → core list)
+* 5-axis scoring with accessor inference (live tracker data → slug prefix → core list)
 * Quarantine mode with automatic expiry (restore / delete / keep) and a manifest table
+
 * Automatic JSON backup before any deletion, with rolling 3-generation retention
 * REST API under `/wp-json/optrion/v1/*` (requires `manage_options`)
 * WP-CLI commands for scripted pipelines

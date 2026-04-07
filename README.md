@@ -29,17 +29,17 @@ Every plugin and theme writes settings to the `wp_options` table. When you deact
 
 Over time your options table accumulates hundreds of orphaned rows, many with `autoload = yes`, quietly inflating every single page load. There's no built-in way to tell which rows are still in use, which plugin created them, or whether it's safe to remove them.
 
-**Optrion fixes this.** It observes which options are actually read, identifies their owner, calculates a staleness score, and lets you safely quarantine or remove the dead weight — with full backup and one-click restore.
+**Optrion fixes this.** It observes which options are actually read, identifies their last accessor, calculates a staleness score, and lets you safely quarantine or remove the dead weight — with full backup and one-click restore.
 
 ## Features
 
 - **Read tracking** — hooks into `alloptions` and `option_{$name}` filters to record when each option was last read and by which plugin or theme.
-- **Owner detection** — traces `get_option()` call stacks back to the originating plugin/theme directory. Falls back to prefix-matching against installed plugins.
-- **Staleness scoring** — rates every option 0–100 based on owner activity, read recency, transient status, autoload waste, and data size.
+- **Accessor detection** — traces `get_option()` call stacks back to the originating plugin/theme directory. Falls back to prefix-matching against installed plugins.
+- **Staleness scoring** — rates every option 0–100 based on accessor activity, read recency, transient status, autoload waste, and data size.
 - **Quarantine mode** — renames options instead of deleting them. If something breaks, restore with one click. Auto-restores on expiry (safe by default).
-- **Bulk cleanup** — delete by score threshold, by owner, or expired transients only. Every delete auto-creates a JSON backup.
+- **Bulk cleanup** — delete by score threshold, by accessor, or expired transients only. Every delete auto-creates a JSON backup.
 - **Export / Import** — full JSON backup with option values, tracking metadata, and scores. Import with dry-run preview and optional overwrite.
-- **Dashboard** — React-based admin UI with score distribution charts, autoload size metrics, and owner breakdown.
+- **Dashboard** — React-based admin UI with score distribution charts, autoload size metrics, and accessor breakdown.
 - **WP-CLI support** — every operation available from the command line.
 - **Core protection** — ~60 known WordPress core options are hardcoded as undeletable.
 
@@ -74,7 +74,7 @@ Each option is scored across five axes:
 
 | Axis | Max Points | Condition |
 |------|-----------|-----------|
-| **Owner status** | 40 | Owning plugin/theme is deactivated (40) or owner unknown (20) |
+| **Accessor status** | 40 | Accessing plugin/theme is deactivated (40) or accessor unknown (20) |
 | **Read recency** | 25 | Last read 90+ days ago (5 pts per 30 days, capped at 25). No read recorded = 25 |
 | **Transient** | 10 | Option name starts with `_transient_` or `_site_transient_` |
 | **Autoload waste** | 15 | `autoload = yes` but zero reads during tracking period |
@@ -93,7 +93,7 @@ Total is capped at 100. The UI maps scores to four tiers:
 
 Not sure if an option is safe to delete? **Quarantine it first.**
 
-Quarantine renames the option in `wp_options` (e.g. `wpseo_titles` → `_optrion_q__wpseo_titles`) and sets `autoload` to `no`. WordPress and the owning plugin will behave as if the option doesn't exist.
+Quarantine renames the option in `wp_options` (e.g. `wpseo_titles` → `_optrion_q__wpseo_titles`) and sets `autoload` to `no`. WordPress and the accessing plugin will behave as if the option doesn't exist.
 
 ```
 Quarantine ──▶ Run your site for a few days
@@ -162,7 +162,7 @@ All endpoints require the `manage_options` capability.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/options` | List options with tracking data and scores. Supports `page`, `per_page`, `orderby`, `order`, `score_min`, `score_max`, `owner_type`, `search`. |
+| `GET` | `/options` | List options with tracking data and scores. Supports `page`, `per_page`, `orderby`, `order`, `score_min`, `score_max`, `accessor_type`, `search`. |
 | `GET` | `/options/{name}` | Single option detail |
 | `DELETE` | `/options` | Bulk delete (auto-backup) |
 | `GET` | `/stats` | Summary statistics |

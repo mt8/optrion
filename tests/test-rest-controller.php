@@ -79,7 +79,7 @@ class RestControllerTest extends WP_UnitTestCase {
 		$this->assertContains( 'rest_test_opt', $names );
 		$row = array_values( array_filter( $data['items'], static fn ( $item ) => 'rest_test_opt' === $item['option_name'] ) )[0];
 		$this->assertArrayHasKey( 'score', $row );
-		$this->assertArrayHasKey( 'owner', $row );
+		$this->assertArrayHasKey( 'accessor', $row );
 	}
 
 	/**
