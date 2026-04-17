@@ -164,17 +164,26 @@ class TrackerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Recording alloptions buffers every key in the array.
+	 * Per-name filters are registered for every option, including autoloaded
+	 * rows, so that a subsequent get_option() attributes the real caller
+	 * from the live backtrace rather than a bulk-capture fallback.
 	 */
-	public function test_record_alloptions_buffers_each_key(): void {
-		$input  = array(
-			'siteurl' => 'https://example.com',
-			'home'    => 'https://example.com',
+	public function test_register_option_read_hooks_covers_autoload_options(): void {
+		add_option( 'optrion_test_autoload', 'v', '', 'yes' );
+		add_option( 'optrion_test_non_autoload', 'v', '', 'no' );
+
+		Tracker::register_option_read_hooks();
+
+		$this->assertNotFalse(
+			has_filter( 'option_optrion_test_autoload' ),
+			'Autoload option should have a per-name filter registered.'
 		);
-		$result = Tracker::record_alloptions( $input );
-		$this->assertSame( $input, $result );
-		$snapshot = Tracker::buffer_snapshot();
-		$this->assertArrayHasKey( 'siteurl', $snapshot );
-		$this->assertArrayHasKey( 'home', $snapshot );
+		$this->assertNotFalse(
+			has_filter( 'option_optrion_test_non_autoload' ),
+			'Non-autoload option should have a per-name filter registered.'
+		);
+
+		delete_option( 'optrion_test_autoload' );
+		delete_option( 'optrion_test_non_autoload' );
 	}
 }
