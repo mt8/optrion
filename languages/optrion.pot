@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-17T03:27:46+00:00\n"
+"POT-Creation-Date: 2026-04-17T04:25:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: optrion\n"
@@ -96,75 +96,75 @@ msgstr ""
 msgid "Export payload has no options list."
 msgstr ""
 
-#: includes/class-plugin.php:56
+#: includes/class-plugin.php:62
 msgid "Optrion is active."
 msgstr ""
 
-#: includes/class-plugin.php:57
+#: includes/class-plugin.php:63
 msgid "Optrion instruments every get_option() call to attribute reads to the right plugin or theme. This adds measurable overhead to admin page loads and is intended for short-term audits only — please deactivate the plugin once your current cleanup round is complete."
 msgstr ""
 
-#: includes/class-plugin.php:59
+#: includes/class-plugin.php:65
 msgid "Deactivate Optrion"
 msgstr ""
 
 #. translators: %d: maximum number of simultaneous quarantines.
-#: includes/class-quarantine.php:96
+#: includes/class-quarantine.php:124
 #, php-format
 msgid "Quarantine limit reached (%d active)."
 msgstr ""
 
-#: includes/class-quarantine.php:108
+#: includes/class-quarantine.php:136
 msgid "Option not found in wp_options."
 msgstr ""
 
-#: includes/class-quarantine.php:127
+#: includes/class-quarantine.php:155
 msgid "Could not rename the option row."
 msgstr ""
 
-#: includes/class-quarantine.php:177
+#: includes/class-quarantine.php:205
 msgid "Could not record the quarantine manifest."
 msgstr ""
 
-#: includes/class-quarantine.php:193
-#: includes/class-quarantine.php:265
+#: includes/class-quarantine.php:235
+#: includes/class-quarantine.php:311
 msgid "Quarantine manifest row not found."
 msgstr ""
 
-#: includes/class-quarantine.php:196
-#: includes/class-quarantine.php:268
+#: includes/class-quarantine.php:238
+#: includes/class-quarantine.php:314
 msgid "Quarantine entry is not active."
 msgstr ""
 
-#: includes/class-quarantine.php:233
+#: includes/class-quarantine.php:275
 msgid "Could not rename the option row back."
 msgstr ""
 
-#: includes/class-quarantine.php:275
+#: includes/class-quarantine.php:321
 msgid "This option is still being accessed. Restore it instead of deleting."
 msgstr ""
 
-#: includes/class-quarantine.php:289
+#: includes/class-quarantine.php:335
 msgid "Could not delete the quarantined option row."
 msgstr ""
 
-#: includes/class-quarantine.php:489
+#: includes/class-quarantine.php:680
 msgid "Option name is empty."
 msgstr ""
 
-#: includes/class-quarantine.php:492
+#: includes/class-quarantine.php:683
 msgid "Option is already quarantined."
 msgstr ""
 
-#: includes/class-quarantine.php:495
+#: includes/class-quarantine.php:686
 msgid "Option name is too long to safely quarantine."
 msgstr ""
 
-#: includes/class-quarantine.php:498
+#: includes/class-quarantine.php:689
 msgid "WordPress core options cannot be quarantined."
 msgstr ""
 
-#: includes/class-quarantine.php:500
+#: includes/class-quarantine.php:691
 msgid "Option cannot be quarantined."
 msgstr ""
 
@@ -178,8 +178,10 @@ msgid "option_name"
 msgstr ""
 
 #: build/index.js:1
+#: build/index.js:8
 #: src/tabs/OptionsList.jsx:31
 #: src/tabs/OptionsList.jsx:237
+#: src/tabs/Quarantine.jsx:91
 msgid "Accessor"
 msgstr ""
 
@@ -388,17 +390,20 @@ msgstr ""
 
 #: build/index.js:8
 #: src/tabs/Quarantine.jsx:90
+msgid "Access count"
+msgstr ""
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:92
 msgid "Actions"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:101
 msgid "This option was accessed after quarantine. It may still be in use."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:106
-msgid "still accessed"
+msgid "still in use"
 msgstr ""
 
 #: build/index.js:8
@@ -407,7 +412,7 @@ msgid "Option restored."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:122
+#: src/tabs/Quarantine.jsx:144
 msgid "Restore"
 msgstr ""
 
@@ -422,12 +427,12 @@ msgid "Option permanently deleted."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:131
+#: src/tabs/Quarantine.jsx:153
 msgid "Delete"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:145
+#: src/tabs/Quarantine.jsx:167
 msgid "No entries."
 msgstr ""
 
@@ -462,4 +467,12 @@ msgstr ""
 #: build/index.js:8
 #: src/index.js:22
 msgid "Optrion mount node not found."
+msgstr ""
+
+#: src/tabs/Quarantine.jsx:103
+msgid "This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore."
+msgstr ""
+
+#: src/tabs/Quarantine.jsx:108
+msgid "in use — restore"
 msgstr ""

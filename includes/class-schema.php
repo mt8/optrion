@@ -24,8 +24,12 @@ final class Schema {
 	 * Bump this whenever a table definition changes.
 	 *
 	 * 1.1.0 — quarantine: `score_at_quarantine` column removed.
+	 * 1.2.0 — quarantine: `last_accessed_at`, `accessor_during_quarantine`,
+	 *         `accessor_type_during_quarantine`, `access_count_during_quarantine`
+	 *         columns added for transparent (pre_option-filter based)
+	 *         quarantine access tracking.
 	 */
-	public const DB_VERSION = '1.1.0';
+	public const DB_VERSION = '1.2.0';
 
 	/**
 	 * Option key that stores the installed DB version.
@@ -85,11 +89,16 @@ final class Schema {
 			status varchar(20) NOT NULL DEFAULT 'active',
 			restored_at datetime NULL DEFAULT NULL,
 			deleted_at datetime NULL DEFAULT NULL,
+			last_accessed_at datetime NULL DEFAULT NULL,
+			accessor_during_quarantine varchar(255) NOT NULL DEFAULT '',
+			accessor_type_during_quarantine varchar(20) NOT NULL DEFAULT '',
+			access_count_during_quarantine bigint(20) unsigned NOT NULL DEFAULT 0,
 			notes text NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY original_name (original_name),
 			KEY status (status),
-			KEY expires_at (expires_at)
+			KEY expires_at (expires_at),
+			KEY last_accessed_at (last_accessed_at)
 		) {$charset_collate};";
 
 		dbDelta( $tracking_sql );

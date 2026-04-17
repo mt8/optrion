@@ -485,19 +485,15 @@ final class Rest_Controller {
 		);
 		// phpcs:enable
 
-		// Enrich each row with tracking data so the UI can flag options that are
-		// still being accessed after quarantine.
-		$names        = wp_list_pluck( $rows, 'original_name' );
-		$tracking_map = empty( $names ) ? array() : self::tracking_map( $names );
+		// Decorate each row with the still-accessed flag derived from the
+		// manifest fields populated by the transparent pre_option filter.
 		foreach ( $rows as &$row ) {
-			$tracking       = $tracking_map[ $row['original_name'] ] ?? null;
-			$last_read      = $tracking ? (string) ( $tracking['last_read_at'] ?? '' ) : '';
-			$still_accessed = '' !== $last_read
-				&& '' !== $row['quarantined_at']
-				&& $last_read > $row['quarantined_at'];
-
-			$row['last_read_at']   = $last_read;
-			$row['still_accessed'] = $still_accessed;
+			$last_access                            = isset( $row['last_accessed_at'] ) ? (string) $row['last_accessed_at'] : '';
+			$row['last_accessed_at']                = $last_access;
+			$row['still_accessed']                  = '' !== $last_access;
+			$row['access_count_during_quarantine']  = (int) ( $row['access_count_during_quarantine'] ?? 0 );
+			$row['accessor_during_quarantine']      = (string) ( $row['accessor_during_quarantine'] ?? '' );
+			$row['accessor_type_during_quarantine'] = (string) ( $row['accessor_type_during_quarantine'] ?? '' );
 		}
 		unset( $row );
 
