@@ -1,5 +1,5 @@
 === Optrion ===
-Contributors: mt8
+Contributors: mt8biz
 Tags: options, database, cleanup, performance, autoload
 Requires at least: 5.8
 Tested up to: 6.9

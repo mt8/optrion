@@ -129,7 +129,7 @@ msgstr "アクセス元"
 #: optrion.php
 #: includes/class-admin-page.php:48
 #: includes/class-admin-page.php:49
-#: includes/class-admin-page.php:94
+#: includes/class-admin-page.php:96
 msgid "Optrion"
 msgstr "Optrion"
 
@@ -138,16 +138,11 @@ msgstr "Optrion"
 msgid "https://github.com/mt8/optrion"
 msgstr "https://github.com/mt8/optrion"
 
-#. Author of the plugin
-#: optrion.php
-msgid "mt8"
-msgstr "mt8"
-
-#: includes/class-admin-page.php:96
+#: includes/class-admin-page.php:99
 msgid "Loading Optrion…"
 msgstr "Optrion を読み込み中…"
 
-#: includes/class-admin-page.php:118
+#: includes/class-admin-page.php:121
 msgid "Optrion admin UI build not found. Run `npm run build` in the plugin directory."
 msgstr "Optrion の管理 UI ビルドが見つかりません。プラグインディレクトリで `npm run build` を実行してください。"
 
@@ -451,3 +446,8 @@ msgstr "Optrion のマウント先ノードが見つかりません。"
 #: optrion.php
 msgid "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup."
 msgstr "各 wp_options 行にアクセスするプラグイン／テーマを追跡し、孤立したオプションを自動バックアップ付きで検疫または削除します。"
+
+#. Author of the plugin
+#: optrion.php
+msgid "mt8biz"
+msgstr "mt8biz"

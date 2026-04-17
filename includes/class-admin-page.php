@@ -91,7 +91,10 @@ final class Admin_Page {
 	 */
 	public static function render(): void {
 		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'Optrion', 'optrion' ) . '</h1>';
+		echo '<h1 class="optrion-title">';
+		echo '<img class="optrion-title__logo" src="' . esc_url( OPTRION_URL . 'assets/optrion-icon.svg' ) . '" alt="" />';
+		echo '<span>' . esc_html__( 'Optrion', 'optrion' ) . '</span>';
+		echo '</h1>';
 		echo '<div id="' . esc_attr( self::ROOT_ID ) . '">';
 		echo '<p>' . esc_html__( 'Loading Optrion…', 'optrion' ) . '</p>';
 		echo '</div>';
