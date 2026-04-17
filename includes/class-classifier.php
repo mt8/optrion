@@ -1,6 +1,6 @@
 <?php
 /**
- * Option unused-likelihood scorer.
+ * Accessor inference and site-context helpers for wp_options rows.
  *
  * @package Optrion
  */
@@ -9,22 +9,16 @@ declare(strict_types=1);
 
 namespace Optrion;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Assigns a 0-100 "probably unused" score to a wp_options row.
+ * Classifies a wp_options row by its most likely accessor (plugin, theme,
+ * WordPress core, widget, or unknown) and resolves display metadata.
  *
- * Rules and label bands come from docs/DESIGN.md §4.2.
+ * Behavior is described in docs/DESIGN.md §4.2.
  */
-final class Scorer {
+final class Classifier {
 
-	public const LABEL_SAFE            = 'safe';
-	public const LABEL_REVIEW          = 'review';
-	public const LABEL_LIKELY_UNUSED   = 'likely_unused';
-	public const LABEL_ALMOST_UNUSED   = 'almost_unused';
 	public const ACCESSOR_TYPE_PLUGIN  = 'plugin';
 	public const ACCESSOR_TYPE_THEME   = 'theme';
 	public const ACCESSOR_TYPE_CORE    = 'core';
@@ -32,62 +26,13 @@ final class Scorer {
 	public const ACCESSOR_TYPE_UNKNOWN = 'unknown';
 
 	/**
-	 * Scores a single option row.
+	 * Builds the live site-wide context used as input to {@see self::infer_accessor()}.
 	 *
-	 * @param array{option_name:string,size_bytes?:int,option_value?:mixed,autoload:string}                                                  $option   Row data from wp_options (plus computed size).
-	 * @param array{last_read_at:?string,read_count:int,last_reader:string,reader_type:string}|null                                          $tracking Tracking row for the option, or null if untracked.
-	 * @param array{active_plugin_slugs:string[],installed_plugin_slugs:string[],active_theme_slugs:string[],installed_theme_slugs:string[]} $context Site context.
-	 * @param DateTimeInterface|null                                                                                                         $now Reference "now" for freshness math. Defaults to current UTC time.
+	 * Gathers active + installed plugin/theme slugs plus display-name maps.
+	 * Kept separate from the inference method so callers can cache the
+	 * context for a bulk pass.
 	 *
-	 * @return array{total:int,label:string,accessor:array{type:string,slug:string},breakdown:array<string,int>}
-	 */
-	public static function score( array $option, ?array $tracking, array $context, ?DateTimeInterface $now = null ): array {
-		$now      = $now ?? new DateTimeImmutable( 'now' );
-		$accessor = self::infer_accessor( $option['option_name'], $tracking, $context );
-
-		$breakdown = array(
-			'accessor'       => self::score_accessor( $accessor, $context ),
-			'freshness'      => self::score_freshness( $tracking, $now ),
-			'transient'      => self::score_transient( $option['option_name'] ),
-			'autoload_waste' => self::score_autoload_waste( $option, $tracking ),
-			'size'           => self::score_size( $option ),
-		);
-
-		$total = min( 100, array_sum( $breakdown ) );
-
-		return array(
-			'total'     => $total,
-			'label'     => self::label_for( $total ),
-			'accessor'  => $accessor,
-			'breakdown' => $breakdown,
-		);
-	}
-
-	/**
-	 * Maps a numeric score to a labeled band.
-	 *
-	 * @param int $total Score in 0-100.
-	 */
-	public static function label_for( int $total ): string {
-		if ( $total >= 80 ) {
-			return self::LABEL_ALMOST_UNUSED;
-		}
-		if ( $total >= 50 ) {
-			return self::LABEL_LIKELY_UNUSED;
-		}
-		if ( $total >= 20 ) {
-			return self::LABEL_REVIEW;
-		}
-		return self::LABEL_SAFE;
-	}
-
-	/**
-	 * Builds the live site-wide context used as input to score().
-	 *
-	 * Gathers active + installed plugin/theme slugs. Kept separate from the
-	 * pure `score()` method so callers can cache the context for a bulk pass.
-	 *
-	 * @return array{active_plugin_slugs:string[],installed_plugin_slugs:string[],active_theme_slugs:string[],installed_theme_slugs:string[]}
+	 * @return array{active_plugin_slugs:string[],installed_plugin_slugs:string[],active_theme_slugs:string[],installed_theme_slugs:string[],plugin_names:array<string,string>,theme_names:array<string,string>}
 	 */
 	public static function build_context(): array {
 		$active_plugins = array();
@@ -139,7 +84,7 @@ final class Scorer {
 	 * Resolves a human-readable display name for an accessor.
 	 *
 	 * Reads Plugin Name from the plugin header or Theme Name from style.css
-	 * via the name maps built by build_context().
+	 * via the name maps built by {@see self::build_context()}.
 	 *
 	 * @param array{type:string,slug:string}                $accessor Inferred accessor.
 	 * @param array{plugin_names?:array,theme_names?:array} $context  Site context.
@@ -160,7 +105,31 @@ final class Scorer {
 	}
 
 	/**
-	 * Infers the last accessor of an option by consulting tracking data, prefix matches, and the core registry.
+	 * Returns true when the accessor is an active plugin or the active theme.
+	 *
+	 * Core and widget accessors are treated as active (they cannot be
+	 * "inactive" in any meaningful sense). Unknown accessors are not active.
+	 *
+	 * @param array{type:string,slug:string}                                  $accessor Inferred accessor.
+	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context  Site context.
+	 */
+	public static function accessor_is_active( array $accessor, array $context ): bool {
+		switch ( $accessor['type'] ) {
+			case self::ACCESSOR_TYPE_CORE:
+			case self::ACCESSOR_TYPE_WIDGET:
+				return true;
+			case self::ACCESSOR_TYPE_PLUGIN:
+				return in_array( $accessor['slug'], $context['active_plugin_slugs'] ?? array(), true );
+			case self::ACCESSOR_TYPE_THEME:
+				return in_array( $accessor['slug'], $context['active_theme_slugs'] ?? array(), true );
+			default:
+				return false;
+		}
+	}
+
+	/**
+	 * Infers the last accessor of an option by consulting the core registry,
+	 * widget prefix, tracking data, and installed plugin/theme slug prefixes.
 	 *
 	 * @param string                                                                $option_name Raw option name.
 	 * @param array{last_reader:string,reader_type:string}|null                     $tracking    Tracking record or null.
@@ -231,100 +200,6 @@ final class Scorer {
 			'type' => self::ACCESSOR_TYPE_UNKNOWN,
 			'slug' => '',
 		);
-	}
-
-	/**
-	 * Axis 1 — accessor state. Max 40 points.
-	 *
-	 * @param array{type:string,slug:string}                                  $accessor Inferred accessor.
-	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context  Site context.
-	 */
-	private static function score_accessor( array $accessor, array $context ): int {
-		switch ( $accessor['type'] ) {
-			case self::ACCESSOR_TYPE_CORE:
-				return 0;
-			case self::ACCESSOR_TYPE_WIDGET:
-				return 0;
-			case self::ACCESSOR_TYPE_UNKNOWN:
-				return 20;
-			case self::ACCESSOR_TYPE_PLUGIN:
-				return in_array( $accessor['slug'], $context['active_plugin_slugs'] ?? array(), true ) ? 0 : 40;
-			case self::ACCESSOR_TYPE_THEME:
-				return in_array( $accessor['slug'], $context['active_theme_slugs'] ?? array(), true ) ? 0 : 40;
-			default:
-				return 0;
-		}
-	}
-
-	/**
-	 * Axis 2 — freshness of last recorded read. Max 25 points.
-	 *
-	 * @param array{last_read_at:?string}|null $tracking Tracking record or null.
-	 * @param DateTimeInterface                $now      Reference "now".
-	 */
-	private static function score_freshness( ?array $tracking, DateTimeInterface $now ): int {
-		if ( null === $tracking || empty( $tracking['last_read_at'] ) ) {
-			return 25;
-		}
-		$last = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', (string) $tracking['last_read_at'] );
-		if ( false === $last ) {
-			return 25;
-		}
-		$days = (int) floor( ( $now->getTimestamp() - $last->getTimestamp() ) / 86400 );
-		if ( $days < 90 ) {
-			return 0;
-		}
-		$extra = (int) floor( ( $days - 90 ) / 30 );
-		return (int) min( 25, 5 + $extra * 5 );
-	}
-
-	/**
-	 * Axis 3 — transient prefixes. 10 points if matched.
-	 *
-	 * @param string $option_name Raw option_name.
-	 */
-	private static function score_transient( string $option_name ): int {
-		if ( 0 === strpos( $option_name, '_transient_' ) || 0 === strpos( $option_name, '_site_transient_' ) ) {
-			return 10;
-		}
-		return 0;
-	}
-
-	/**
-	 * Axis 4 — autoload waste. 15 points if autoload=yes but never read during tracking.
-	 *
-	 * @param array{autoload:string}     $option   Option row fragment.
-	 * @param array{read_count:int}|null $tracking Tracking record or null.
-	 */
-	private static function score_autoload_waste( array $option, ?array $tracking ): int {
-		if ( ! self::is_autoloaded( (string) $option['autoload'] ) ) {
-			return 0;
-		}
-		$reads = null === $tracking ? 0 : (int) ( $tracking['read_count'] ?? 0 );
-		return 0 === $reads ? 15 : 0;
-	}
-
-	/**
-	 * Axis 5 — serialized size. 10 / 5 / 0.
-	 *
-	 * @param array{size_bytes?:int,option_value?:mixed} $option Option row fragment.
-	 */
-	private static function score_size( array $option ): int {
-		if ( isset( $option['size_bytes'] ) ) {
-			$bytes = (int) $option['size_bytes'];
-		} elseif ( array_key_exists( 'option_value', $option ) ) {
-			$serialized = is_string( $option['option_value'] ) ? $option['option_value'] : maybe_serialize( $option['option_value'] );
-			$bytes      = strlen( (string) $serialized );
-		} else {
-			$bytes = 0;
-		}
-		if ( $bytes > 100 * 1024 ) {
-			return 10;
-		}
-		if ( $bytes > 10 * 1024 ) {
-			return 5;
-		}
-		return 0;
 	}
 
 	/**

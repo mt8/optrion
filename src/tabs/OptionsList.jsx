@@ -13,19 +13,6 @@ import { api } from '../api';
 
 const PER_PAGE = 50;
 
-const labelClass = ( label ) => {
-	switch ( label ) {
-		case 'almost_unused':
-			return 'optrion-score--red';
-		case 'likely_unused':
-			return 'optrion-score--orange';
-		case 'review':
-			return 'optrion-score--yellow';
-		default:
-			return 'optrion-score--green';
-	}
-};
-
 const formatLastRead = ( iso ) => {
 	if ( ! iso ) {
 		return '—';
@@ -45,7 +32,6 @@ const SORTABLE_COLUMNS = [
 	{ key: 'autoload', label: __( 'Autoload', 'optrion' ) },
 	{ key: 'size', label: __( 'Size', 'optrion' ) },
 	{ key: 'last_read', label: __( 'Last accessed', 'optrion' ) },
-	{ key: 'score', label: __( 'Score', 'optrion' ) },
 ];
 
 const OptionsList = () => {
@@ -57,10 +43,11 @@ const OptionsList = () => {
 	const [ selected, setSelected ] = useState( () => new Set() );
 	const [ page, setPage ] = useState( 1 );
 	const [ search, setSearch ] = useState( '' );
-	const [ scoreMin, setScoreMin ] = useState( '' );
 	const [ accessorType, setAccessorType ] = useState( '' );
-	const [ orderby, setOrderby ] = useState( 'score' );
-	const [ order, setOrder ] = useState( 'desc' );
+	const [ inactiveOnly, setInactiveOnly ] = useState( false );
+	const [ autoloadOnly, setAutoloadOnly ] = useState( false );
+	const [ orderby, setOrderby ] = useState( 'name' );
+	const [ order, setOrder ] = useState( 'asc' );
 	const [ showCore, setShowCore ] = useState( false );
 
 	const load = useCallback( () => {
@@ -70,8 +57,9 @@ const OptionsList = () => {
 			page,
 			per_page: PER_PAGE,
 			search,
-			score_min: scoreMin,
 			accessor_type: accessorType,
+			inactive_only: inactiveOnly,
+			autoload_only: autoloadOnly,
 			orderby,
 			order,
 		} )
@@ -82,7 +70,7 @@ const OptionsList = () => {
 			} )
 			.catch( ( e ) => setError( e.message || String( e ) ) )
 			.finally( () => setLoading( false ) );
-	}, [ page, search, scoreMin, accessorType, orderby, order ] );
+	}, [ page, search, accessorType, inactiveOnly, autoloadOnly, orderby, order ] );
 
 	useEffect( () => {
 		load();
@@ -155,7 +143,7 @@ const OptionsList = () => {
 	const bulkExport = async () => {
 		if ( ! selected.size ) return;
 		try {
-			const payload = await api.export( Array.from( selected ), 0 );
+			const payload = await api.export( Array.from( selected ) );
 			const blob = new Blob( [ JSON.stringify( payload, null, 2 ) ], {
 				type: 'application/json',
 			} );
@@ -184,9 +172,7 @@ const OptionsList = () => {
 		} else {
 			setOrderby( key );
 			setOrder(
-				key === 'name' || key === 'accessor' || key === 'autoload'
-					? 'asc'
-					: 'desc'
+				key === 'size' || key === 'last_read' ? 'desc' : 'asc'
 			);
 		}
 	};
@@ -196,6 +182,43 @@ const OptionsList = () => {
 			return '';
 		}
 		return order === 'asc' ? ' ▲' : ' ▼';
+	};
+
+	const renderAccessorCell = ( item ) => {
+		const accessor = item.accessor || {};
+		const name     = accessor.name || accessor.slug || '—';
+		const type     = accessor.type || 'unknown';
+		const isActive = accessor.active === true;
+		const showInactive =
+			type === 'plugin' || type === 'theme' ? ! isActive : false;
+		return (
+			<>
+				{ name }
+				<span className="optrion-accessor-type"> ({ type })</span>
+				{ showInactive && (
+					<span
+						className="optrion-badge optrion-badge--inactive"
+						title={ __(
+							'Accessor plugin/theme is currently inactive.',
+							'optrion'
+						) }
+					>
+						{ __( 'inactive', 'optrion' ) }
+					</span>
+				) }
+				{ isProtected( item ) && (
+					<span
+						className="optrion-badge optrion-badge--protected"
+						title={ __(
+							'WordPress core option — cannot be selected or deleted.',
+							'optrion'
+						) }
+					>
+						{ __( 'protected', 'optrion' ) }
+					</span>
+				) }
+			</>
+		);
 	};
 
 
@@ -208,20 +231,6 @@ const OptionsList = () => {
 					onChange={ ( v ) => {
 						setPage( 1 );
 						setSearch( v );
-					} }
-				/>
-				<SelectControl
-					label={ __( 'Score', 'optrion' ) }
-					value={ scoreMin }
-					options={ [
-						{ label: __( 'All scores', 'optrion' ), value: '' },
-						{ label: __( '≥20 — Review (may be unused)', 'optrion' ), value: '20' },
-						{ label: __( '≥50 — Likely unused', 'optrion' ), value: '50' },
-						{ label: __( '≥80 — Almost certainly unused', 'optrion' ), value: '80' },
-					] }
-					onChange={ ( v ) => {
-						setPage( 1 );
-						setScoreMin( v );
 					} }
 				/>
 				<SelectControl
@@ -238,6 +247,22 @@ const OptionsList = () => {
 					onChange={ ( v ) => {
 						setPage( 1 );
 						setAccessorType( v );
+					} }
+				/>
+				<CheckboxControl
+					label={ __( 'Inactive accessors only', 'optrion' ) }
+					checked={ inactiveOnly }
+					onChange={ ( v ) => {
+						setPage( 1 );
+						setInactiveOnly( v );
+					} }
+				/>
+				<CheckboxControl
+					label={ __( 'Autoload only', 'optrion' ) }
+					checked={ autoloadOnly }
+					onChange={ ( v ) => {
+						setPage( 1 );
+						setAutoloadOnly( v );
 					} }
 				/>
 				<CheckboxControl
@@ -301,7 +326,7 @@ const OptionsList = () => {
 										className="optrion-sort-button"
 										onClick={ () => changeSort( col.key ) }
 										aria-label={ sprintf(
-											/* translators: %s: column heading label (e.g. "Size", "Score"). */
+											/* translators: %s: column heading label (e.g. "Size"). */
 											__( 'Sort by %s', 'optrion' ),
 											col.label
 										) }
@@ -343,36 +368,27 @@ const OptionsList = () => {
 								<td>
 									<code>{ item.option_name }</code>
 								</td>
+								<td>{ renderAccessorCell( item ) }</td>
 								<td>
-									{ item.accessor.name || item.accessor.slug || '—' }
-									<span className="optrion-accessor-type">
-										{ ' ' }
-										({ item.accessor.type })
-									</span>
-									{ isProtected( item ) && (
+									{ item.is_autoload ? (
 										<span
-											className="optrion-badge optrion-badge--protected"
-											title={ __(
-												'WordPress core option — cannot be selected or deleted.',
-												'optrion'
-											) }
+											className="optrion-badge optrion-badge--autoload"
+											title={ item.autoload }
 										>
-											{ __( 'protected', 'optrion' ) }
+											{ __( 'autoload', 'optrion' ) }
+										</span>
+									) : (
+										<span className="optrion-muted">
+											{ item.autoload || 'no' }
 										</span>
 									) }
 								</td>
-								<td>{ item.autoload }</td>
 								<td>{ item.size_human }</td>
 								<td>
 									{ formatLastRead(
 										item.tracking &&
 											item.tracking.last_read_at
 									) }
-								</td>
-								<td
-									className={ labelClass( item.score.label ) }
-								>
-									{ item.score.total }
 								</td>
 							</tr>
 						) ) }

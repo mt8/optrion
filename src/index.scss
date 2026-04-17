@@ -124,10 +124,15 @@
 		}
 	}
 
-	.optrion-score--red { color: #b32d2e; font-weight: 600; }
-	.optrion-score--orange { color: #d98500; font-weight: 600; }
-	.optrion-score--yellow { color: #a48f00; }
-	.optrion-score--green { color: #2a6a2e; }
+	.optrion-badge--inactive {
+		background: #fde2e2;
+		color: #8a1f11;
+	}
+	.optrion-badge--autoload {
+		background: #e7f0fa;
+		color: #2a5ca0;
+	}
+	.optrion-muted { color: #646970; }
 
 	.optrion-import__actions {
 		display: flex;

@@ -24,15 +24,9 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 final class CLI_Command {
 
 	/**
-	 * List options with scoring data.
+	 * List options with accessor, autoload, size, and last-read metadata.
 	 *
 	 * ## OPTIONS
-	 *
-	 * [--score-min=<int>]
-	 * : Minimum score threshold.
-	 *
-	 * [--score-max=<int>]
-	 * : Maximum score threshold.
 	 *
 	 * [--accessor-type=<type>]
 	 * : Filter by accessor type.
@@ -41,8 +35,15 @@ final class CLI_Command {
 	 *   - plugin
 	 *   - theme
 	 *   - core
+	 *   - widget
 	 *   - unknown
 	 * ---
+	 *
+	 * [--inactive-only]
+	 * : Only show options whose accessor is an inactive plugin/theme.
+	 *
+	 * [--autoload-only]
+	 * : Only show autoload=yes rows.
 	 *
 	 * [--search=<needle>]
 	 * : Substring match on option_name.
@@ -64,13 +65,13 @@ final class CLI_Command {
 	 */
 	public function list( array $args, array $assoc_args ): void {
 		unset( $args );
-		$score_min     = isset( $assoc_args['score-min'] ) ? (int) $assoc_args['score-min'] : null;
-		$score_max     = isset( $assoc_args['score-max'] ) ? (int) $assoc_args['score-max'] : null;
 		$accessor_type = isset( $assoc_args['accessor-type'] ) ? (string) $assoc_args['accessor-type'] : '';
+		$inactive_only = ! empty( $assoc_args['inactive-only'] );
+		$autoload_only = ! empty( $assoc_args['autoload-only'] );
 		$search        = isset( $assoc_args['search'] ) ? (string) $assoc_args['search'] : '';
 		$format        = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
 
-		$items = self::collect_scored_rows( $score_min, $score_max, $accessor_type, $search );
+		$items = self::collect_rows( $accessor_type, $inactive_only, $autoload_only, $search );
 
 		if ( 'ids' === $format ) {
 			WP_CLI::log( implode( "\n", array_column( $items, 'option_name' ) ) );
@@ -80,7 +81,7 @@ final class CLI_Command {
 		Utils\format_items(
 			$format,
 			$items,
-			array( 'option_name', 'score', 'label', 'accessor_type', 'accessor_slug', 'autoload', 'size_bytes', 'last_read_at' )
+			array( 'option_name', 'accessor_type', 'accessor_slug', 'accessor_active', 'autoload', 'size_bytes', 'last_read_at' )
 		);
 	}
 
@@ -131,11 +132,14 @@ final class CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--score-min=<int>]
-	 * : Export only options with score >= value.
-	 *
 	 * [--names=<list>]
 	 * : Comma-separated option_name list.
+	 *
+	 * [--accessor-type=<type>]
+	 * : Export all options matching the accessor type.
+	 *
+	 * [--inactive-only]
+	 * : Export all options whose accessor is an inactive plugin/theme.
 	 *
 	 * [--output=<path>]
 	 * : Destination file. Defaults to stdout.
@@ -146,12 +150,16 @@ final class CLI_Command {
 	public function export( array $args, array $assoc_args ): void {
 		unset( $args );
 		$names = isset( $assoc_args['names'] ) ? array_filter( array_map( 'trim', explode( ',', (string) $assoc_args['names'] ) ) ) : array();
-		if ( empty( $names ) && isset( $assoc_args['score-min'] ) ) {
-			$items = self::collect_scored_rows( (int) $assoc_args['score-min'], null, '', '' );
-			$names = array_column( $items, 'option_name' );
+		if ( empty( $names ) ) {
+			$accessor_type = isset( $assoc_args['accessor-type'] ) ? (string) $assoc_args['accessor-type'] : '';
+			$inactive_only = ! empty( $assoc_args['inactive-only'] );
+			if ( '' !== $accessor_type || $inactive_only ) {
+				$items = self::collect_rows( $accessor_type, $inactive_only, false, '' );
+				$names = array_column( $items, 'option_name' );
+			}
 		}
 		if ( empty( $names ) ) {
-			WP_CLI::error( 'Nothing to export. Provide --names or --score-min.' );
+			WP_CLI::error( 'Nothing to export. Provide --names, --accessor-type, or --inactive-only.' );
 		}
 
 		$json = Exporter::to_json( $names );
@@ -214,15 +222,18 @@ final class CLI_Command {
 	}
 
 	/**
-	 * Delete options above a score threshold (with automatic backup).
+	 * Delete options by explicit names or by accessor-state filter (with automatic backup).
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--score-min=<int>]
-	 * : Delete options with score >= value.
-	 *
 	 * [--names=<list>]
-	 * : Comma-separated option_name list to delete instead.
+	 * : Comma-separated option_name list to delete.
+	 *
+	 * [--accessor-type=<type>]
+	 * : Delete all options matching the accessor type.
+	 *
+	 * [--inactive-only]
+	 * : Delete all options whose accessor is an inactive plugin/theme.
 	 *
 	 * [--yes]
 	 * : Skip the confirmation prompt.
@@ -233,12 +244,16 @@ final class CLI_Command {
 	public function clean( array $args, array $assoc_args ): void {
 		unset( $args );
 		$names = isset( $assoc_args['names'] ) ? array_filter( array_map( 'trim', explode( ',', (string) $assoc_args['names'] ) ) ) : array();
-		if ( empty( $names ) && isset( $assoc_args['score-min'] ) ) {
-			$items = self::collect_scored_rows( (int) $assoc_args['score-min'], null, '', '' );
-			$names = array_column( $items, 'option_name' );
+		if ( empty( $names ) ) {
+			$accessor_type = isset( $assoc_args['accessor-type'] ) ? (string) $assoc_args['accessor-type'] : '';
+			$inactive_only = ! empty( $assoc_args['inactive-only'] );
+			if ( '' !== $accessor_type || $inactive_only ) {
+				$items = self::collect_rows( $accessor_type, $inactive_only, false, '' );
+				$names = array_column( $items, 'option_name' );
+			}
 		}
 		if ( empty( $names ) ) {
-			WP_CLI::error( 'Nothing to delete. Provide --names or --score-min.' );
+			WP_CLI::error( 'Nothing to delete. Provide --names, --accessor-type, or --inactive-only.' );
 		}
 
 		WP_CLI::confirm( sprintf( 'Delete %d option(s) (with automatic backup)?', count( $names ) ), $assoc_args );
@@ -342,7 +357,7 @@ final class CLI_Command {
 		$ok     = 0;
 		$errors = 0;
 		foreach ( $names as $name ) {
-			$id = Quarantine::quarantine( (string) $name, 0, 0, $days );
+			$id = Quarantine::quarantine( (string) $name, 0, $days );
 			if ( is_wp_error( $id ) ) {
 				WP_CLI::warning( $name . ': ' . $id->get_error_message() );
 				++$errors;
@@ -354,16 +369,16 @@ final class CLI_Command {
 	}
 
 	/**
-	 * Collects scored option rows matching filters.
+	 * Collects option rows with accessor/tracking metadata, filtered by the given criteria.
 	 *
-	 * @param int|null $score_min  Minimum score.
-	 * @param int|null $score_max  Maximum score.
-	 * @param string   $accessor_type Accessor type filter.
-	 * @param string   $search     Substring filter.
+	 * @param string $accessor_type Accessor type filter (empty means any).
+	 * @param bool   $inactive_only When true, only rows whose accessor is an inactive plugin/theme are returned.
+	 * @param bool   $autoload_only When true, only autoload rows are returned.
+	 * @param string $search        Substring filter on option_name.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private static function collect_scored_rows( ?int $score_min, ?int $score_max, string $accessor_type, string $search ): array {
+	private static function collect_rows( string $accessor_type, bool $inactive_only, bool $autoload_only, string $search ): array {
 		global $wpdb;
 		$where  = array();
 		$params = array();
@@ -390,39 +405,31 @@ final class CLI_Command {
 			$tracking_row['read_count']                            = (int) $tracking_row['read_count'];
 			$tracking_map[ (string) $tracking_row['option_name'] ] = $tracking_row;
 		}
-		$context = Scorer::build_context();
+		$context = Classifier::build_context();
 		$out     = array();
 		foreach ( (array) $rows as $row ) {
-			$name = (string) $row['option_name'];
-			$size = strlen( (string) $row['option_value'] );
-			$t    = $tracking_map[ $name ] ?? null;
-			$s    = Scorer::score(
-				array(
-					'option_name' => $name,
-					'size_bytes'  => $size,
-					'autoload'    => $row['autoload'],
-				),
-				$t,
-				$context
-			);
-			if ( null !== $score_min && $s['total'] < $score_min ) {
+			$name        = (string) $row['option_name'];
+			$is_autoload = Classifier::is_autoloaded( (string) $row['autoload'] );
+			if ( $autoload_only && ! $is_autoload ) {
 				continue;
 			}
-			if ( null !== $score_max && $s['total'] > $score_max ) {
+			$tracking = $tracking_map[ $name ] ?? null;
+			$accessor = Classifier::infer_accessor( $name, $tracking, $context );
+			$active   = Classifier::accessor_is_active( $accessor, $context );
+			if ( '' !== $accessor_type && $accessor_type !== $accessor['type'] ) {
 				continue;
 			}
-			if ( '' !== $accessor_type && $accessor_type !== $s['accessor']['type'] ) {
+			if ( $inactive_only && $active ) {
 				continue;
 			}
 			$out[] = array(
-				'option_name'   => $name,
-				'score'         => $s['total'],
-				'label'         => $s['label'],
-				'accessor_type' => $s['accessor']['type'],
-				'accessor_slug' => $s['accessor']['slug'],
-				'autoload'      => (string) $row['autoload'],
-				'size_bytes'    => $size,
-				'last_read_at'  => (string) ( $t['last_read_at'] ?? '' ),
+				'option_name'     => $name,
+				'accessor_type'   => $accessor['type'],
+				'accessor_slug'   => $accessor['slug'],
+				'accessor_active' => $active ? 'yes' : 'no',
+				'autoload'        => (string) $row['autoload'],
+				'size_bytes'      => strlen( (string) $row['option_value'] ),
+				'last_read_at'    => (string) ( $tracking['last_read_at'] ?? '' ),
 			);
 		}
 		return $out;

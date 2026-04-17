@@ -22,8 +22,10 @@ final class Schema {
 	 * Database schema version.
 	 *
 	 * Bump this whenever a table definition changes.
+	 *
+	 * 1.1.0 — quarantine: `score_at_quarantine` column removed.
 	 */
-	public const DB_VERSION = '1.0.0';
+	public const DB_VERSION = '1.1.0';
 
 	/**
 	 * Option key that stores the installed DB version.
@@ -80,7 +82,6 @@ final class Schema {
 			quarantined_at datetime NOT NULL,
 			expires_at datetime NOT NULL,
 			quarantined_by bigint(20) unsigned NOT NULL DEFAULT 0,
-			score_at_quarantine int(11) NOT NULL DEFAULT 0,
 			status varchar(20) NOT NULL DEFAULT 'active',
 			restored_at datetime NULL DEFAULT NULL,
 			deleted_at datetime NULL DEFAULT NULL,
@@ -93,6 +94,8 @@ final class Schema {
 
 		dbDelta( $tracking_sql );
 		dbDelta( $quarantine_sql );
+
+		self::drop_legacy_columns( $quarantine );
 
 		update_option( self::VERSION_OPTION, self::DB_VERSION, false );
 
@@ -116,5 +119,29 @@ final class Schema {
 			return;
 		}
 		self::install();
+	}
+
+	/**
+	 * Drops columns that have been removed from the schema definition.
+	 *
+	 * DbDelta() does not issue DROP COLUMN statements, so columns that used to
+	 * exist need to be pruned explicitly during upgrades.
+	 *
+	 * @param string $quarantine Fully qualified quarantine table name.
+	 */
+	private static function drop_legacy_columns( string $quarantine ): void {
+		global $wpdb;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$has_score = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+				$quarantine,
+				'score_at_quarantine'
+			)
+		);
+		if ( (int) $has_score > 0 ) {
+			$wpdb->query( "ALTER TABLE {$quarantine} DROP COLUMN score_at_quarantine" );
+		}
+		// phpcs:enable
 	}
 }

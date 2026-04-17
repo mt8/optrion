@@ -87,7 +87,6 @@ const Quarantine = () => {
 							<th>{ __( 'Quarantined at', 'optrion' ) }</th>
 							<th>{ __( 'Expires at', 'optrion' ) }</th>
 							<th>{ __( 'Last accessed', 'optrion' ) }</th>
-							<th>{ __( 'Score', 'optrion' ) }</th>
 							<th>{ __( 'Actions', 'optrion' ) }</th>
 						</tr>
 					</thead>
@@ -111,7 +110,6 @@ const Quarantine = () => {
 								<td>{ row.quarantined_at }</td>
 								<td>{ row.expires_at }</td>
 								<td>{ row.last_read_at || '—' }</td>
-								<td>{ row.score_at_quarantine }</td>
 								<td>
 									{ 'active' === status && (
 										<>
@@ -143,7 +141,7 @@ const Quarantine = () => {
 						) ) }
 						{ rows.length === 0 && (
 							<tr>
-								<td colSpan="6">
+								<td colSpan="5">
 									{ __( 'No entries.', 'optrion' ) }
 								</td>
 							</tr>

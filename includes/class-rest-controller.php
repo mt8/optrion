@@ -51,23 +51,25 @@ final class Rest_Controller {
 						),
 						'orderby'       => array(
 							'type'    => 'string',
-							'default' => 'score',
-							'enum'    => array( 'score', 'name', 'size', 'last_read', 'accessor', 'autoload' ),
+							'default' => 'name',
+							'enum'    => array( 'name', 'size', 'last_read', 'accessor', 'autoload' ),
 						),
 						'order'         => array(
 							'type'    => 'string',
-							'default' => 'desc',
+							'default' => 'asc',
 							'enum'    => array( 'asc', 'desc' ),
-						),
-						'score_min'     => array(
-							'type' => 'integer',
-						),
-						'score_max'     => array(
-							'type' => 'integer',
 						),
 						'accessor_type' => array(
 							'type' => 'string',
 							'enum' => array( 'plugin', 'theme', 'core', 'widget', 'unknown' ),
+						),
+						'inactive_only' => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
+						'autoload_only' => array(
+							'type'    => 'boolean',
+							'default' => false,
 						),
 						'search'        => array(
 							'type' => 'string',
@@ -123,11 +125,10 @@ final class Rest_Controller {
 				'callback'            => array( self::class, 'export' ),
 				'permission_callback' => $auth,
 				'args'                => array(
-					'names'     => array(
+					'names' => array(
 						'type'  => 'array',
 						'items' => array( 'type' => 'string' ),
 					),
-					'score_min' => array( 'type' => 'integer' ),
 				),
 			)
 		);
@@ -238,7 +239,7 @@ final class Rest_Controller {
 	}
 
 	/**
-	 * GET /options — paginated list with tracking + score.
+	 * GET /options — paginated list with tracking and accessor fields.
 	 *
 	 * @param WP_REST_Request $req Request.
 	 */
@@ -248,9 +249,9 @@ final class Rest_Controller {
 		$per_page      = min( 200, max( 1, (int) $req['per_page'] ) );
 		$offset        = ( $page - 1 ) * $per_page;
 		$search        = (string) $req['search'];
-		$score_min     = null !== $req['score_min'] ? (int) $req['score_min'] : null;
-		$score_max     = null !== $req['score_max'] ? (int) $req['score_max'] : null;
 		$accessor_type = (string) $req['accessor_type'];
+		$inactive_only = (bool) $req['inactive_only'];
+		$autoload_only = (bool) $req['autoload_only'];
 
 		$where  = array();
 		$params = array();
@@ -274,52 +275,42 @@ final class Rest_Controller {
 		// phpcs:enable
 
 		$tracking_map = self::tracking_map();
-		$context      = Scorer::build_context();
+		$context      = Classifier::build_context();
 		$items        = array();
 		$autoload_sum = 0;
 		foreach ( (array) $rows as $row ) {
-			$name = (string) $row['option_name'];
-			$size = strlen( (string) $row['option_value'] );
-			if ( Scorer::is_autoloaded( (string) $row['autoload'] ) ) {
+			$name        = (string) $row['option_name'];
+			$size        = strlen( (string) $row['option_value'] );
+			$is_autoload = Classifier::is_autoloaded( (string) $row['autoload'] );
+			if ( $is_autoload ) {
 				$autoload_sum += $size;
 			}
+			if ( $autoload_only && ! $is_autoload ) {
+				continue;
+			}
 			$tracking = $tracking_map[ $name ] ?? null;
-			$score    = Scorer::score(
-				array(
-					'option_name' => $name,
-					'size_bytes'  => $size,
-					'autoload'    => $row['autoload'],
-				),
-				$tracking,
-				$context
-			);
-			if ( null !== $score_min && $score['total'] < $score_min ) {
+			$accessor = Classifier::infer_accessor( $name, $tracking, $context );
+			$active   = Classifier::accessor_is_active( $accessor, $context );
+			if ( '' !== $accessor_type && $accessor_type !== $accessor['type'] ) {
 				continue;
 			}
-			if ( null !== $score_max && $score['total'] > $score_max ) {
-				continue;
-			}
-			if ( '' !== $accessor_type && $accessor_type !== $score['accessor']['type'] ) {
+			if ( $inactive_only && $active ) {
 				continue;
 			}
 			$items[] = array(
 				'option_name' => $name,
 				'autoload'    => (string) $row['autoload'],
+				'is_autoload' => $is_autoload,
 				'size'        => $size,
 				'size_human'  => size_format( $size ),
 				'accessor'    => array_merge(
-					$score['accessor'],
+					$accessor,
 					array(
-						'active' => self::accessor_is_active( $score['accessor'], $context ),
-						'name'   => Scorer::resolve_accessor_name( $score['accessor'], $context ),
+						'active' => $active,
+						'name'   => Classifier::resolve_accessor_name( $accessor, $context ),
 					)
 				),
 				'tracking'    => $tracking,
-				'score'       => array(
-					'total'     => $score['total'],
-					'label'     => $score['label'],
-					'breakdown' => $score['breakdown'],
-				),
 			);
 		}
 
@@ -356,32 +347,24 @@ final class Rest_Controller {
 		}
 		$size     = strlen( (string) $row['option_value'] );
 		$tracking = self::tracking_map( array( $name ) )[ $name ] ?? null;
-		$context  = Scorer::build_context();
-		$score    = Scorer::score(
-			array(
-				'option_name' => $name,
-				'size_bytes'  => $size,
-				'autoload'    => $row['autoload'],
-			),
-			$tracking,
-			$context
-		);
+		$context  = Classifier::build_context();
+		$accessor = Classifier::infer_accessor( $name, $tracking, $context );
 		return new WP_REST_Response(
 			array(
 				'option_name'  => $name,
 				'option_value' => (string) $row['option_value'],
 				'autoload'     => (string) $row['autoload'],
+				'is_autoload'  => Classifier::is_autoloaded( (string) $row['autoload'] ),
 				'size'         => $size,
 				'size_human'   => size_format( $size ),
 				'accessor'     => array_merge(
-					$score['accessor'],
+					$accessor,
 					array(
-						'active' => self::accessor_is_active( $score['accessor'], $context ),
-						'name'   => Scorer::resolve_accessor_name( $score['accessor'], $context ),
+						'active' => Classifier::accessor_is_active( $accessor, $context ),
+						'name'   => Classifier::resolve_accessor_name( $accessor, $context ),
 					)
 				),
 				'tracking'     => $tracking,
-				'score'        => $score,
 			)
 		);
 	}
@@ -427,9 +410,6 @@ final class Rest_Controller {
 	 */
 	public static function export( WP_REST_Request $req ): WP_REST_Response {
 		$names = (array) ( $req['names'] ?? array() );
-		if ( empty( $names ) && null !== $req['score_min'] ) {
-			$names = self::collect_names_by_score_min( (int) $req['score_min'] );
-		}
 		return new WP_REST_Response( Exporter::build_export( $names ) );
 	}
 
@@ -473,7 +453,7 @@ final class Rest_Controller {
 		);
 		$user  = get_current_user_id();
 		foreach ( $names as $name ) {
-			$id = Quarantine::quarantine( (string) $name, $user, 0, $days );
+			$id = Quarantine::quarantine( (string) $name, $user, $days );
 			if ( $id instanceof WP_Error ) {
 				$out['errors'][] = array(
 					'option_name' => (string) $name,
@@ -614,8 +594,6 @@ final class Rest_Controller {
 			$items,
 			static function ( array $a, array $b ) use ( $orderby, $sign ): int {
 				switch ( $orderby ) {
-					case 'name':
-						return $sign * strcmp( (string) $a['option_name'], (string) $b['option_name'] );
 					case 'size':
 						return $sign * ( $a['size'] <=> $b['size'] );
 					case 'autoload':
@@ -628,68 +606,11 @@ final class Rest_Controller {
 						$la = (string) ( $a['tracking']['last_read_at'] ?? '' );
 						$lb = (string) ( $b['tracking']['last_read_at'] ?? '' );
 						return $sign * strcmp( $la, $lb );
-					case 'score':
+					case 'name':
 					default:
-						return $sign * ( $a['score']['total'] <=> $b['score']['total'] );
+						return $sign * strcmp( (string) $a['option_name'], (string) $b['option_name'] );
 				}
 			}
 		);
-	}
-
-	/**
-	 * Resolves the "active" flag for an inferred accessor.
-	 *
-	 * @param array{type:string,slug:string}                                  $accessor Inferred accessor.
-	 * @param array{active_plugin_slugs:string[],active_theme_slugs:string[]} $context  Live site context.
-	 */
-	private static function accessor_is_active( array $accessor, array $context ): bool {
-		switch ( $accessor['type'] ) {
-			case 'core':
-				return true;
-			case 'plugin':
-				return in_array( $accessor['slug'], $context['active_plugin_slugs'] ?? array(), true );
-			case 'theme':
-				return in_array( $accessor['slug'], $context['active_theme_slugs'] ?? array(), true );
-			default:
-				return false;
-		}
-	}
-
-	/**
-	 * Collects all option names whose score is at least `$score_min`.
-	 *
-	 * @param int $score_min Lower bound.
-	 *
-	 * @return string[]
-	 */
-	private static function collect_names_by_score_min( int $score_min ): array {
-		global $wpdb;
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results(
-			"SELECT option_name, option_value, autoload FROM {$wpdb->options}"
-			. " WHERE option_name NOT LIKE '\\_transient\\_%' AND option_name NOT LIKE '\\_site\\_transient\\_%'"
-			. " AND option_name NOT LIKE '\\_optrion\\_q\\_\\_%' AND option_name NOT LIKE 'optrion\\_%'",
-			ARRAY_A
-		);
-		// phpcs:enable
-		$tracking = self::tracking_map();
-		$context  = Scorer::build_context();
-		$names    = array();
-		foreach ( (array) $rows as $row ) {
-			$name  = (string) $row['option_name'];
-			$score = Scorer::score(
-				array(
-					'option_name' => $name,
-					'size_bytes'  => strlen( (string) $row['option_value'] ),
-					'autoload'    => $row['autoload'],
-				),
-				$tracking[ $name ] ?? null,
-				$context
-			);
-			if ( $score['total'] >= $score_min ) {
-				$names[] = $name;
-			}
-		}
-		return $names;
 	}
 }

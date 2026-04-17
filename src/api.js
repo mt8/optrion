@@ -21,9 +21,10 @@ export const api = {
 	listOptions: ( query = {} ) => {
 		const usp = new URLSearchParams();
 		Object.entries( query ).forEach( ( [ k, v ] ) => {
-			if ( v !== undefined && v !== null && v !== '' ) {
-				usp.set( k, String( v ) );
+			if ( v === undefined || v === null || v === '' || v === false ) {
+				return;
 			}
+			usp.set( k, String( v ) );
 		} );
 		const q = usp.toString();
 		return request( 'options' + ( q ? '?' + q : '' ) );
@@ -33,10 +34,10 @@ export const api = {
 			method: 'DELETE',
 			data: { names },
 		} ),
-	export: ( names, scoreMin ) =>
+	export: ( names ) =>
 		request( 'export', {
 			method: 'POST',
-			data: { names, score_min: scoreMin },
+			data: { names },
 		} ),
 	import: ( payload, overwrite ) =>
 		request( 'import', {

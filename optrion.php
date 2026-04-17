@@ -32,7 +32,7 @@ if ( is_readable( $optrion_autoload ) ) {
 require_once OPTRION_DIR . 'includes/class-schema.php';
 require_once OPTRION_DIR . 'includes/class-core-options.php';
 require_once OPTRION_DIR . 'includes/class-tracker.php';
-require_once OPTRION_DIR . 'includes/class-scorer.php';
+require_once OPTRION_DIR . 'includes/class-classifier.php';
 require_once OPTRION_DIR . 'includes/class-quarantine.php';
 require_once OPTRION_DIR . 'includes/class-exporter.php';
 require_once OPTRION_DIR . 'includes/class-importer.php';

@@ -44,7 +44,7 @@ class ExporterImporterTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Each exported option carries name/value/autoload/score.
+	 * Each exported option carries name/value/autoload/tracking and no score object.
 	 */
 	public function test_export_option_shape(): void {
 		add_option( 'opt_b', 'beta', '', 'no' );
@@ -53,9 +53,36 @@ class ExporterImporterTest extends WP_UnitTestCase {
 		$this->assertSame( 'opt_b', $entry['option_name'] );
 		$this->assertSame( 'beta', $entry['option_value'] );
 		$this->assertArrayHasKey( 'autoload', $entry );
-		$this->assertArrayHasKey( 'score', $entry );
-		$this->assertArrayHasKey( 'total', $entry['score'] );
-		$this->assertArrayHasKey( 'breakdown', $entry['score'] );
+		$this->assertArrayHasKey( 'tracking', $entry );
+		$this->assertArrayNotHasKey( 'score', $entry );
+	}
+
+	/**
+	 * Legacy 1.0.0 export payloads (with a score object) import cleanly —
+	 * the importer ignores fields it does not care about.
+	 */
+	public function test_import_accepts_legacy_score_payload(): void {
+		$json   = (string) wp_json_encode(
+			array(
+				'version' => '1.0.0',
+				'options' => array(
+					array(
+						'option_name'  => 'legacy_opt',
+						'option_value' => 'carried',
+						'autoload'     => 'no',
+						'score'        => array(
+							'total'     => 42,
+							'label'     => 'review',
+							'breakdown' => array(),
+						),
+					),
+				),
+			)
+		);
+		$result = Importer::import( $json, false );
+		$this->assertIsArray( $result );
+		$this->assertSame( 1, $result['added'] );
+		$this->assertSame( 'carried', get_option( 'legacy_opt' ) );
 	}
 
 	/**

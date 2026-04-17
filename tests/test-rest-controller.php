@@ -63,9 +63,9 @@ class RestControllerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * GET /options returns items with tracking + score fields.
+	 * GET /options returns items with the raw signal fields.
 	 */
-	public function test_list_options_returns_items_with_score(): void {
+	public function test_list_options_returns_items_with_signal_fields(): void {
 		wp_set_current_user( $this->admin_id );
 		add_option( 'rest_test_opt', 'hello', '', 'no' );
 		$req = new WP_REST_Request( 'GET', '/' . Rest_Controller::NAMESPACE_V1 . '/options' );
@@ -78,8 +78,13 @@ class RestControllerTest extends WP_UnitTestCase {
 		$names = array_column( $data['items'], 'option_name' );
 		$this->assertContains( 'rest_test_opt', $names );
 		$row = array_values( array_filter( $data['items'], static fn ( $item ) => 'rest_test_opt' === $item['option_name'] ) )[0];
-		$this->assertArrayHasKey( 'score', $row );
+		$this->assertArrayNotHasKey( 'score', $row );
 		$this->assertArrayHasKey( 'accessor', $row );
+		$this->assertArrayHasKey( 'autoload', $row );
+		$this->assertArrayHasKey( 'is_autoload', $row );
+		$this->assertArrayHasKey( 'size', $row );
+		$this->assertArrayHasKey( 'tracking', $row );
+		$this->assertArrayHasKey( 'active', $row['accessor'] );
 	}
 
 	/**

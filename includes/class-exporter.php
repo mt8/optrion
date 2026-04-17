@@ -9,12 +9,10 @@ declare(strict_types=1);
 
 namespace Optrion;
 
-use WP_Error;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Builds JSON exports of wp_options rows with tracking and score context.
+ * Builds JSON exports of wp_options rows with their tracking context.
  *
  * See docs/DESIGN.md §4.3.
  */
@@ -22,8 +20,11 @@ final class Exporter {
 
 	/**
 	 * Version stamp of the export JSON schema.
+	 *
+	 * 1.1.0 — drops the legacy `score` object from each option entry.
+	 *         Import still accepts 1.0.0 payloads (score is ignored).
 	 */
-	public const FORMAT_VERSION = '1.0.0';
+	public const FORMAT_VERSION = '1.1.0';
 
 	/**
 	 * Builds the export payload for the given option names.
@@ -36,36 +37,17 @@ final class Exporter {
 		$option_names = array_values( array_unique( array_filter( array_map( 'strval', $option_names ) ) ) );
 
 		$options = array();
-		if ( ! empty( $option_names ) ) {
-			$context = Scorer::build_context();
-			foreach ( $option_names as $name ) {
-				$row = self::fetch_option_row( $name );
-				if ( null === $row ) {
-					continue;
-				}
-				$tracking  = self::fetch_tracking_row( $name );
-				$score     = Scorer::score(
-					array(
-						'option_name'  => $name,
-						'option_value' => $row['option_value'],
-						'size_bytes'   => strlen( (string) $row['option_value'] ),
-						'autoload'     => $row['autoload'],
-					),
-					$tracking,
-					$context
-				);
-				$options[] = array(
-					'option_name'  => $name,
-					'option_value' => (string) $row['option_value'],
-					'autoload'     => (string) $row['autoload'],
-					'tracking'     => $tracking,
-					'score'        => array(
-						'total'     => $score['total'],
-						'label'     => $score['label'],
-						'breakdown' => $score['breakdown'],
-					),
-				);
+		foreach ( $option_names as $name ) {
+			$row = self::fetch_option_row( $name );
+			if ( null === $row ) {
+				continue;
 			}
+			$options[] = array(
+				'option_name'  => $name,
+				'option_value' => (string) $row['option_value'],
+				'autoload'     => (string) $row['autoload'],
+				'tracking'     => self::fetch_tracking_row( $name ),
+			);
 		}
 
 		return array(

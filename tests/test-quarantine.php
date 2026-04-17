@@ -47,7 +47,7 @@ class QuarantineTest extends WP_UnitTestCase {
 	 */
 	public function test_quarantine_renames_and_records_manifest(): void {
 		add_option( 'orphan_plugin_setting', 'hello', '', 'yes' );
-		$id = Quarantine::quarantine( 'orphan_plugin_setting', 0, 75 );
+		$id = Quarantine::quarantine( 'orphan_plugin_setting' );
 		$this->assertIsInt( $id );
 		$this->assertGreaterThan( 0, $id );
 
@@ -71,7 +71,7 @@ class QuarantineTest extends WP_UnitTestCase {
 		$this->assertNotNull( $manifest );
 		$this->assertSame( 'orphan_plugin_setting', $manifest['original_name'] );
 		$this->assertSame( Quarantine::STATUS_ACTIVE, $manifest['status'] );
-		$this->assertSame( '75', (string) $manifest['score_at_quarantine'] );
+		$this->assertArrayNotHasKey( 'score_at_quarantine', $manifest );
 	}
 
 	/**

@@ -77,14 +77,13 @@ final class Quarantine {
 	/**
 	 * Moves an option into quarantine.
 	 *
-	 * @param string $option_name    Live option_name in wp_options.
-	 * @param int    $user_id        Admin user performing the action (0 if unattributed).
-	 * @param int    $score          Score at the time of quarantine (for history).
-	 * @param int    $expires_days   Override for the default expiry window (0 → use setting).
+	 * @param string $option_name  Live option_name in wp_options.
+	 * @param int    $user_id      Admin user performing the action (0 if unattributed).
+	 * @param int    $expires_days Override for the default expiry window (0 → use setting).
 	 *
 	 * @return int|WP_Error Manifest ID on success, WP_Error otherwise.
 	 */
-	public static function quarantine( string $option_name, int $user_id = 0, int $score = 0, int $expires_days = 0 ) {
+	public static function quarantine( string $option_name, int $user_id = 0, int $expires_days = 0 ) {
 		if ( ! self::is_quarantinable( $option_name ) ) {
 			return new WP_Error( 'optrion_not_quarantinable', self::reason_cannot_quarantine( $option_name ) );
 		}
@@ -152,15 +151,14 @@ final class Quarantine {
 		$inserted = $wpdb->insert(
 			Schema::quarantine_table(),
 			array(
-				'original_name'       => $option_name,
-				'original_autoload'   => (string) $autoload,
-				'quarantined_at'      => $now,
-				'expires_at'          => $exp,
-				'quarantined_by'      => $user_id,
-				'score_at_quarantine' => $score,
-				'status'              => self::STATUS_ACTIVE,
+				'original_name'     => $option_name,
+				'original_autoload' => (string) $autoload,
+				'quarantined_at'    => $now,
+				'expires_at'        => $exp,
+				'quarantined_by'    => $user_id,
+				'status'            => self::STATUS_ACTIVE,
 			),
-			array( '%s', '%s', '%s', '%s', '%d', '%d', '%s' )
+			array( '%s', '%s', '%s', '%s', '%d', '%s' )
 		);
 
 		if ( false === $inserted ) {
