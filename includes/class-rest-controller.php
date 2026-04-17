@@ -52,7 +52,7 @@ final class Rest_Controller {
 						'orderby'       => array(
 							'type'    => 'string',
 							'default' => 'name',
-							'enum'    => array( 'name', 'size', 'last_read', 'accessor', 'autoload' ),
+							'enum'    => array( 'name', 'size', 'last_read', 'accessor' ),
 						),
 						'order'         => array(
 							'type'    => 'string',
@@ -596,12 +596,14 @@ final class Rest_Controller {
 				switch ( $orderby ) {
 					case 'size':
 						return $sign * ( $a['size'] <=> $b['size'] );
-					case 'autoload':
-						return $sign * strcmp( (string) $a['autoload'], (string) $b['autoload'] );
 					case 'accessor':
-						$oa = (string) ( $a['accessor']['type'] ?? '' ) . '/' . (string) ( $a['accessor']['slug'] ?? '' );
-						$ob = (string) ( $b['accessor']['type'] ?? '' ) . '/' . (string) ( $b['accessor']['slug'] ?? '' );
-						return $sign * strcmp( $oa, $ob );
+						// Sort on the visible label: the resolved accessor name falls
+						// back to the slug, then to the type. Case-insensitive so
+						// "WooCommerce" and "wordfence" sort naturally against the
+						// lowercase slugs rendered for unknown accessors.
+						$label_a = self::accessor_sort_label( $a['accessor'] ?? array() );
+						$label_b = self::accessor_sort_label( $b['accessor'] ?? array() );
+						return $sign * strcasecmp( $label_a, $label_b );
 					case 'last_read':
 						$la = (string) ( $a['tracking']['last_read_at'] ?? '' );
 						$lb = (string) ( $b['tracking']['last_read_at'] ?? '' );
@@ -612,5 +614,23 @@ final class Rest_Controller {
 				}
 			}
 		);
+	}
+
+	/**
+	 * Returns the string used to sort an accessor cell.
+	 *
+	 * Matches what the UI displays: `name` when available, otherwise `slug`,
+	 * otherwise the accessor type.
+	 *
+	 * @param array<string,mixed> $accessor Accessor payload from list_options().
+	 */
+	private static function accessor_sort_label( array $accessor ): string {
+		foreach ( array( 'name', 'slug', 'type' ) as $key ) {
+			$value = isset( $accessor[ $key ] ) ? (string) $accessor[ $key ] : '';
+			if ( '' !== $value ) {
+				return $value;
+			}
+		}
+		return '';
 	}
 }

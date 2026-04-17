@@ -26,12 +26,12 @@ const formatLastRead = ( iso ) => {
 	return d.toLocaleString();
 };
 
-const SORTABLE_COLUMNS = [
-	{ key: 'name', label: __( 'option_name', 'optrion' ) },
-	{ key: 'accessor', label: __( 'Accessor', 'optrion' ) },
-	{ key: 'autoload', label: __( 'Autoload', 'optrion' ) },
-	{ key: 'size', label: __( 'Size', 'optrion' ) },
-	{ key: 'last_read', label: __( 'Last accessed', 'optrion' ) },
+const COLUMNS = [
+	{ key: 'name', label: __( 'option_name', 'optrion' ), sortable: true },
+	{ key: 'accessor', label: __( 'Accessor', 'optrion' ), sortable: true },
+	{ key: 'autoload', label: __( 'Autoload', 'optrion' ), sortable: false },
+	{ key: 'size', label: __( 'Size', 'optrion' ), sortable: true },
+	{ key: 'last_read', label: __( 'Last accessed', 'optrion' ), sortable: true },
 ];
 
 const OptionsList = () => {
@@ -319,23 +319,27 @@ const OptionsList = () => {
 					<thead>
 						<tr>
 							<th style={ { width: 32 } }></th>
-							{ SORTABLE_COLUMNS.map( ( col ) => (
-								<th key={ col.key }>
-									<button
-										type="button"
-										className="optrion-sort-button"
-										onClick={ () => changeSort( col.key ) }
-										aria-label={ sprintf(
-											/* translators: %s: column heading label (e.g. "Size"). */
-											__( 'Sort by %s', 'optrion' ),
-											col.label
-										) }
-									>
-										{ col.label }
-										{ sortIndicator( col.key ) }
-									</button>
-								</th>
-							) ) }
+							{ COLUMNS.map( ( col ) =>
+								col.sortable ? (
+									<th key={ col.key }>
+										<button
+											type="button"
+											className="optrion-sort-button"
+											onClick={ () => changeSort( col.key ) }
+											aria-label={ sprintf(
+												/* translators: %s: column heading label (e.g. "Size"). */
+												__( 'Sort by %s', 'optrion' ),
+												col.label
+											) }
+										>
+											{ col.label }
+											{ sortIndicator( col.key ) }
+										</button>
+									</th>
+								) : (
+									<th key={ col.key }>{ col.label }</th>
+								)
+							) }
 						</tr>
 					</thead>
 					<tbody>
