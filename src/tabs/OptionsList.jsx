@@ -48,7 +48,7 @@ const OptionsList = () => {
 	const [ autoloadOnly, setAutoloadOnly ] = useState( false );
 	const [ orderby, setOrderby ] = useState( 'name' );
 	const [ order, setOrder ] = useState( 'asc' );
-	const [ showCore, setShowCore ] = useState( false );
+	const [ showCore, setShowCore ] = useState( true );
 
 	const load = useCallback( () => {
 		setLoading( true );
