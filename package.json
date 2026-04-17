@@ -1,7 +1,7 @@
 {
   "name": "optrion",
   "version": "0.1.0",
-  "description": "Track, score, quarantine, and clean orphaned options in your WordPress database.",
+  "description": "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup.",
   "private": true,
   "license": "GPL-2.0-or-later",
   "scripts": {
