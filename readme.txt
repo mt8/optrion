@@ -1,14 +1,14 @@
 === Optrion ===
 Contributors: mt8biz
 Tags: options, database, cleanup, performance, autoload
-Requires at least: 5.8
+Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.3
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup.
+Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans.
 
 == Description ==
 
@@ -18,7 +18,7 @@ Optrion observes which options are actually read at runtime, attributes each rea
 
 1. **Observe** — the tracker records when and by whom each option is read, using the live PHP backtrace to identify the real caller.
 2. **Quarantine** — rename the option temporarily so WordPress and the accessing plugin can no longer see it; confirm nothing breaks.
-3. **Delete** — a JSON backup is written automatically, and the row is removed from both `wp_options` and the tracking table.
+3. **Delete** — the row is removed from both `wp_options` and the tracking table. Use the **Export selected** bulk action first if you want a restore copy; Optrion never writes option_value content to the server filesystem on your behalf (option_value can contain API keys, SMTP credentials, and other secrets that should not leak into backups of `wp-content/`).
 
 Core WordPress options are locked out of destructive operations.
 
@@ -28,9 +28,9 @@ Core WordPress options are locked out of destructive operations.
 * Accessor inference (live tracker data → slug prefix → curated core list) with an active / inactive flag so you can filter down to options whose owner is no longer present.
 * Sortable options table with individual columns for accessor, autoload, size, and last-read timestamp — no opaque composite score.
 * Quarantine mode with automatic expiry (restore / delete / keep) and a manifest table that flags options that are still being accessed.
-* Automatic JSON backup before any deletion, with rolling 3-generation retention.
+* **No server-side backup**: JSON exports are browser downloads (or explicit CLI `--output`), never written to disk on the server — so option_value content does not leak into `wp-content/` snapshots.
 * REST API under `/wp-json/optrion/v1/*` (requires `manage_options`).
-* WP-CLI commands for scripted pipelines, including `--accessor-type` / `--inactive-only` filters on `list`, `export`, and `clean`.
+* WP-CLI commands for scripted pipelines, including `--accessor-type` / `--inactive-only` filters on `list`, `export`, and `clean` (`clean` requires an explicit `--i-have-a-backup` acknowledgment).
 
 == Installation ==
 
@@ -59,7 +59,7 @@ Uninstalling restores any active quarantines to their original names, drops the 
 * Per-option read tracking: every `get_option()` call is attributed to the real plugin or theme on the PHP backtrace.
 * Options list with individual signal columns (accessor, autoload, size, last accessed) and inactive-only / autoload-only / accessor-type filters.
 * Quarantine workflow with manifest table, automatic expiry (restore / delete / keep), and a still-accessed guard that blocks deletion of options that are still being read.
-* Automatic JSON backup before every delete, with rolling 3-generation retention.
+* No server-side persistence of option_value content: JSON exports are browser downloads only.
 * REST API under `/wp-json/optrion/v1/*` (requires `manage_options`).
 * WP-CLI commands for scripted pipelines, including `--accessor-type`, `--inactive-only`, and `--autoload-only` filters on `list`, `export`, and `clean`.
 * Full Japanese localization.

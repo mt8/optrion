@@ -211,6 +211,7 @@ Legacy `1.0.0` payloads (each entry had an extra `score` object) are still accep
 - Targets: options selected in the UI, or bulk accessor-based filtering via the CLI.
 - Filename: `optrion-export-{site}-{date}.json`.
 - Values ship as they live in the DB (already serialized), so a restore is a plain `INSERT`.
+- **Delivery invariant**: the admin UI returns the payload in the REST response body and saves it through a browser `Blob` download — the server never writes the file. WP-CLI defaults to stdout; `--output=<path>` is the operator's explicit choice to persist. No temp files, no cache, no `wp-content/optrion-*` directory is ever created by Optrion itself.
 
 #### Import specification
 
@@ -227,17 +228,25 @@ Legacy `1.0.0` payloads (each entry had an extra `score` object) are still accep
 Admin selects rows to delete
         │
         ▼
-  Automatic export (JSON saved to wp-content/optrion-backups/)
-        │
-        ▼
-  Confirmation dialog (row count + accessor breakdown)
+  Confirmation dialog (row count + reminder to export first if desired)
         │
         ▼
   DELETE from wp_options + DELETE from the tracking table
         │
         ▼
-  Completion notice (deleted count + backup file path)
+  Completion notice (deleted count)
 ```
+
+#### No server-side backup (security invariant)
+
+Optrion **never writes `option_value` content to the server filesystem**. `wp_options` rows can contain API keys, SMTP credentials, payment gateway secrets, license tokens, and other values that should not be copied into `wp-content/` — even with an `.htaccess` guard, that directory is routinely snapshot by host-level backups or misconfigured web servers. The plugin therefore does not create a \"pre-delete backup\" directory on its behalf.
+
+Administrators who want a restore path take one explicit action before running a delete:
+
+- **Admin UI**: Select the rows and use **Export selected** to download a JSON file to the browser. The file lands wherever the operator's browser saves it; the server never sees it.
+- **WP-CLI**: Run `wp optrion export --names=...` (or `--accessor-type=...` / `--inactive-only`). Default sink is stdout; `--output=<path>` persists to an operator-chosen file path. Either way, the operator is explicitly in control of where the JSON goes.
+
+`wp optrion clean` refuses to run without the explicit `--i-have-a-backup` flag to acknowledge that the operator has taken care of the backup step themselves.
 
 #### Bulk deletion options
 
@@ -249,7 +258,7 @@ Admin selects rows to delete
 
 - Known WordPress core options have their delete button disabled, and the UI shows a lock icon.
 - The autoload total size before/after deletion is surfaced on the UI (e.g. "autoload payload 1.2 MB → 0.8 MB").
-- The last three backup archives live in `wp-content/optrion-backups/`; older backups are pruned automatically.
+- Admin confirmation dialog reminds the operator to export first if they need a restore path.
 
 ### 4.5 Quarantine module
 
@@ -393,7 +402,7 @@ Authorization: every endpoint requires the `manage_options` capability.
 |---|---|---|---|
 | GET | `/options` | List options (with accessor / tracking / autoload / size) | `page`, `per_page`, `orderby`, `order`, `accessor_type`, `inactive_only`, `autoload_only`, `search` |
 | GET | `/options/{name}` | Single-option detail | — |
-| DELETE | `/options` | Bulk delete with automatic backup | `names[]` |
+| DELETE | `/options` | Bulk delete (no server-side backup; export first if needed) | `names[]` |
 | GET | `/stats` | Summary stats (total rows, autoload size) | — |
 | POST | `/export` | Export selected options as JSON | `names[]` |
 | POST | `/import` | Import JSON | `file` (multipart), `overwrite` (bool) |
@@ -523,7 +532,7 @@ There is no dedicated export screen. Select rows in the options table and use th
 | Capability | Every operation requires `manage_options` |
 | CSRF | REST API relies on the standard WordPress nonce middleware (`X-WP-Nonce`) |
 | SQL injection | `$wpdb->prepare()` on every query |
-| File handling | Backup directory protected with an `.htaccess` that denies direct access |
+| Sensitive data at rest | **Optrion never persists `option_value` content to the server filesystem.** `Cleaner::delete()` does not write a backup; exports are browser downloads (admin UI) or operator-directed CLI output. No `wp-content/optrion-backups/`, no temp files, no cache. See §4.3 and §4.4. |
 | Import validation | JSON schema validation, `version` header required, `option_name` character check (alphanumerics, underscores, hyphens only) |
 | Core option protection | The curated ~60-entry core options list blocks DELETE for those names |
 
@@ -570,8 +579,8 @@ wp optrion import backup.json --dry-run
 # Import JSON (for real).
 wp optrion import backup.json
 
-# Bulk-delete options owned by inactive plugins/themes (automatic backup).
-wp optrion clean --inactive-only --yes
+# Bulk-delete options owned by inactive plugins/themes (no server-side backup; export first if needed).
+wp optrion clean --inactive-only --i-have-a-backup --yes
 
 # Delete expired transients.
 wp optrion clean-transients
@@ -639,7 +648,7 @@ optrion/
 | **Activate** | Create custom tables (tracking + quarantine); snapshot every option on first run |
 | **Daily operation** | Tracking auto-enables on admin visits; batches are written on `shutdown` |
 | **Deactivate** | Unschedule the cron job; tables and data are preserved |
-| **Uninstall** | DROP custom tables; remove the backup directory; delete the plugin's own options (no irony allowed) |
+| **Uninstall** | DROP custom tables; delete the plugin's own options (no irony allowed); clear the cron job |
 
 ---
 

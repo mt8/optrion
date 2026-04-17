@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-17T07:44:43+00:00\n"
+"POT-Creation-Date: 2026-04-17T12:34:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: optrion\n"
@@ -29,7 +29,7 @@ msgstr ""
 
 #. Description of the plugin
 #: optrion.php
-msgid "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup."
+msgid "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans."
 msgstr ""
 
 #. Author of the plugin
@@ -46,23 +46,15 @@ msgid "Optrion admin UI build not found. Run `npm run build` in the plugin direc
 msgstr ""
 
 #. translators: %s: option_name that was protected.
-#: includes/class-cleaner.php:52
+#: includes/class-cleaner.php:48
 #, php-format
 msgid "Skipped core option: %s"
 msgstr ""
 
 #. translators: %s: option_name that could not be deleted.
-#: includes/class-cleaner.php:87
+#: includes/class-cleaner.php:77
 #, php-format
 msgid "Failed to delete %s."
-msgstr ""
-
-#: includes/class-cleaner.php:123
-msgid "Could not create backup directory."
-msgstr ""
-
-#: includes/class-cleaner.php:132
-msgid "Could not write backup file."
 msgstr ""
 
 #: includes/class-importer.php:57
@@ -178,9 +170,9 @@ msgid "option_name"
 msgstr ""
 
 #: build/index.js:1
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/OptionsList.jsx:31
-#: src/tabs/OptionsList.jsx:237
+#: src/tabs/OptionsList.jsx:238
 #: src/tabs/Quarantine.jsx:92
 msgid "Accessor"
 msgstr ""
@@ -196,7 +188,7 @@ msgid "Size"
 msgstr ""
 
 #: build/index.js:1
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/OptionsList.jsx:34
 #: src/tabs/Quarantine.jsx:90
 msgid "Last accessed"
@@ -223,250 +215,254 @@ msgid "Options"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:201
+#: src/tabs/OptionsList.jsx:202
 msgid "Accessor plugin/theme is currently inactive."
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:206
+#: src/tabs/OptionsList.jsx:207
 msgid "inactive"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:212
+#: src/tabs/OptionsList.jsx:213
 msgid "WordPress core option — cannot be selected or deleted."
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:217
+#: src/tabs/OptionsList.jsx:218
 msgid "protected"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:229
+#: src/tabs/OptionsList.jsx:230
 msgid "Search"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:240
+#: src/tabs/OptionsList.jsx:241
 msgid "All"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:253
+#: src/tabs/OptionsList.jsx:254
 msgid "Inactive accessors only"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:261
+#: src/tabs/OptionsList.jsx:262
 msgid "Autoload only"
 msgstr ""
 
 #: build/index.js:1
-#: src/tabs/OptionsList.jsx:269
+#: src/tabs/OptionsList.jsx:270
 msgid "Show WordPress-Core"
 msgstr ""
 
 #. translators: %d: number of quarantined options.
 #: build/index.js:3
-#: src/tabs/OptionsList.jsx:136
+#: src/tabs/OptionsList.jsx:137
 #, js-format
 msgid "%d option(s) quarantined."
 msgstr ""
 
 #: build/index.js:3
-#: src/tabs/OptionsList.jsx:280
+#: src/tabs/OptionsList.jsx:281
 msgid "Quarantine selected"
 msgstr ""
 
 #. translators: %d: number of exported options.
 #: build/index.js:5
-#: src/tabs/OptionsList.jsx:161
+#: src/tabs/OptionsList.jsx:162
 #, js-format
 msgid "%d option(s) exported."
 msgstr ""
 
 #: build/index.js:5
-#: src/tabs/OptionsList.jsx:287
+#: src/tabs/OptionsList.jsx:288
 msgid "Export selected"
 msgstr ""
 
-#: build/index.js:5
-#: src/tabs/OptionsList.jsx:105
+#. translators: %d: number of options about to be deleted.
+#: build/index.js:6
+#: src/tabs/OptionsList.jsx:106
 #, js-format
-msgid "Delete %d option(s)? (automatic backup will be made)"
+msgid ""
+"Permanently delete %d option(s)?\n"
+"\n"
+"Optrion does NOT write a server-side backup. If you want a restore copy, cancel this dialog, use \"Export selected\" to download a JSON file to your machine, then come back and delete."
 msgstr ""
 
 #. translators: %d: number of deleted options.
-#: build/index.js:7
-#: src/tabs/OptionsList.jsx:121
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:122
 #, js-format
 msgid "%d option(s) deleted."
 msgstr ""
 
-#: build/index.js:7
-#: src/tabs/OptionsList.jsx:295
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:296
 msgid "Delete selected"
 msgstr ""
 
-#: build/index.js:7
-#: src/tabs/OptionsList.jsx:299
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:300
 #, js-format
 msgid "%1$d selected · %2$d matches"
 msgstr ""
 
 #. translators: %s: column heading label (e.g. "Size").
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:332
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:333
 #, js-format
 msgid "Sort by %s"
 msgstr ""
 
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:365
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:366
 msgid "WordPress core option — protected"
 msgstr ""
 
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:383
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:384
 msgid "autoload"
 msgstr ""
 
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:410
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:411
 msgid "Previous"
 msgstr ""
 
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:412
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:413
 #, js-format
 msgid "Page %d"
 msgstr ""
 
-#: build/index.js:8
-#: src/tabs/OptionsList.jsx:418
+#: build/index.js:9
+#: src/tabs/OptionsList.jsx:419
 msgid "Next"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/App.js:16
 msgid "Quarantine"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:67
 msgid "Status"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:70
 msgid "Active"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:72
 msgid "Restored"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:75
 msgid "Deleted"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:87
 msgid "Original name"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:88
 msgid "Quarantined at"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:89
 msgid "Expires at"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:91
 msgid "Access count"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:93
 msgid "Actions"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:104
 msgid "This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:109
 msgid "in use — restore"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:31
 msgid "Option restored."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:145
 msgid "Restore"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:39
 msgid "Permanently delete this quarantined option?"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:49
 msgid "Option permanently deleted."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:154
 msgid "Delete"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Quarantine.jsx:168
 msgid "No entries."
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/App.js:17
 #: src/tabs/Import.jsx:64
 msgid "Import"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Import.jsx:55
 msgid "Overwrite existing rows"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Import.jsx:61
 msgid "Dry run"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Import.jsx:71
 #, js-format
 msgid "Preview — add: %1$d, overwrite: %2$d"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/tabs/Import.jsx:80
 #, js-format
 msgid "Import complete — added: %1$d, overwritten: %2$d, skipped: %3$d"
 msgstr ""
 
-#: build/index.js:8
+#: build/index.js:9
 #: src/index.js:22
 msgid "Optrion mount node not found."
 msgstr ""

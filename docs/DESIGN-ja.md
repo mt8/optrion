@@ -228,17 +228,25 @@ per-name フィルタを `plugins_loaded` 優先度 10 で登録するのは、Y
 管理者が削除対象を選択
         │
         ▼
-  自動エクスポート（JSON を wp-content/optrion-backups/ に保存）
-        │
-        ▼
-  確認ダイアログ（対象件数・accessor 内訳を表示）
+  確認ダイアログ（対象件数・必要なら事前エクスポートを促すリマインダー）
         │
         ▼
   wp_options から DELETE + tracking テーブルからも DELETE
         │
         ▼
-  完了通知（削除件数 + バックアップファイルパスを表示）
+  完了通知（削除件数）
 ```
+
+#### サーバー側バックアップは作成しない（セキュリティ不変条件）
+
+Optrion は **`option_value` の内容をサーバーのファイルシステムに書き出さない**。`wp_options` には API キー・SMTP 認証・決済ゲートウェイのシークレット・ライセンストークン等が入りうるため、`.htaccess` でガードしていても `wp-content/` はホスト全体バックアップや Web サーバー設定ミスで漏えいしやすい。よって削除前の「自動バックアップディレクトリ」を自動生成しない。
+
+復元経路が欲しい場合、管理者が明示的に 1 アクション挟む:
+
+- **管理 UI**: 対象行を選択し「選択項目をエクスポート」で JSON をブラウザダウンロード。ファイルはブラウザの保存先に置かれ、サーバーは一切感知しない。
+- **WP-CLI**: `wp optrion export --names=...`（または `--accessor-type=...` / `--inactive-only`）。既定出力は stdout、`--output=<path>` でオペレーター指定のファイルに保存。どちらも**保存先は明示的に操作者が決める**。
+
+`wp optrion clean` は `--i-have-a-backup` フラグなしでは実行を拒否する。オペレーターが事前バックアップを取った旨の明示的な同意。
 
 #### 一括削除オプション
 
@@ -250,7 +258,7 @@ per-name フィルタを `plugins_loaded` 優先度 10 で登録するのは、Y
 
 - WordPress コアオプション（既知リスト）は削除ボタンを無効化し、UI にロックアイコンを表示
 - autoload 合計サイズの変動を削除前後で表示（「autoload データが 1.2MB → 0.8MB に削減」）
-- 直近バックアップ3世代を `wp-content/optrion-backups/` に保持。4世代目以降は古い順に自動削除
+- 削除確認ダイアログで「復元用コピーが必要なら先にエクスポートしてください」のリマインダーを表示
 
 ### 4.5 Quarantine（検疫モード）
 
@@ -394,7 +402,7 @@ wp optrion quarantine check-expiry
 |---|---|---|---|
 | GET | `/options` | オプション一覧（accessor / tracking / autoload / size 付き） | `page`, `per_page`, `orderby`, `order`, `accessor_type`, `inactive_only`, `autoload_only`, `search` |
 | GET | `/options/{name}` | 単一オプションの詳細 | — |
-| DELETE | `/options` | 一括削除（自動バックアップ付き） | `names[]` |
+| DELETE | `/options` | 一括削除（サーバー側バックアップなし） | `names[]` |
 | GET | `/stats` | サマリー統計（合計件数、autoload サイズ） | — |
 | POST | `/export` | 選択オプションを JSON エクスポート | `names[]` |
 | POST | `/import` | JSON インポート | `file`（multipart）, `overwrite`（bool） |
@@ -528,7 +536,7 @@ accessor 条件での一括エクスポートは WP-CLI（`wp optrion export --a
 | 権限 | 全操作に `manage_options` ケーパビリティ必須 |
 | CSRF | REST API は WordPress 標準の nonce 認証（`X-WP-Nonce`） |
 | SQL インジェクション | `$wpdb->prepare()` を全クエリで使用 |
-| ファイル操作 | バックアップディレクトリに `.htaccess` で直接アクセス禁止 |
+| 機密データの永続化 | **Optrion は `option_value` の内容をサーバーのファイルシステムに書き出さない**。`Cleaner::delete()` はバックアップを作成せず、エクスポートは管理 UI からのブラウザダウンロード or 操作者指定の CLI 出力のみ。`wp-content/optrion-backups/` / 一時ファイル / キャッシュも一切作らない。§4.3 / §4.4 参照。 |
 | インポート検証 | JSON スキーマバリデーション。version フィールドの存在確認。option_name の文字種チェック（英数字・アンダースコア・ハイフンのみ） |
 | コアオプション保護 | 既知のコアオプション約60個はハードコードしたリストで DELETE を拒否 |
 
@@ -575,8 +583,8 @@ wp optrion import backup.json --dry-run
 # JSON インポート（実行）
 wp optrion import backup.json
 
-# 無効化されたプラグイン/テーマのオプションを一括削除（自動バックアップ付き）
-wp optrion clean --inactive-only --yes
+# 無効化されたプラグイン/テーマのオプションを一括削除（サーバー側バックアップなし、事前に export 必須）
+wp optrion clean --inactive-only --i-have-a-backup --yes
 
 # 期限切れ Transient 一括削除
 wp optrion clean-transients
@@ -644,7 +652,7 @@ optrion/
 | **有効化** | カスタムテーブル作成（tracking + quarantine）。全オプションの初回スナップショット |
 | **日常運用** | 管理画面アクセス時に追跡を自動有効化。shutdown でバッチ記録 |
 | **無効化** | Cron ジョブの解除のみ。テーブル・データは保持 |
-| **アンインストール** | カスタムテーブル DROP。バックアップディレクトリ削除。プラグイン自身のオプション削除（皮肉にならないよう確実に） |
+| **アンインストール** | カスタムテーブル DROP、プラグイン自身のオプション削除（皮肉にならないよう確実に）、cron 解除 |
 
 ---
 

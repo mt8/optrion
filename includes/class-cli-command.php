@@ -222,7 +222,13 @@ final class CLI_Command {
 	}
 
 	/**
-	 * Delete options by explicit names or by accessor-state filter (with automatic backup).
+	 * Delete options by explicit names or by accessor-state filter.
+	 *
+	 * Optrion does not write a server-side backup. If a restore path is
+	 * needed, run `wp optrion export ...` first and keep the resulting
+	 * JSON somewhere you control. The `--i-have-a-backup` flag is a
+	 * mandatory acknowledgment that the operator has taken care of
+	 * that step themselves.
 	 *
 	 * ## OPTIONS
 	 *
@@ -235,6 +241,10 @@ final class CLI_Command {
 	 * [--inactive-only]
 	 * : Delete all options whose accessor is an inactive plugin/theme.
 	 *
+	 * [--i-have-a-backup]
+	 * : Required. Confirms that the operator has exported the target
+	 *   rows beforehand; Optrion will not create a server-side backup.
+	 *
 	 * [--yes]
 	 * : Skip the confirmation prompt.
 	 *
@@ -243,6 +253,9 @@ final class CLI_Command {
 	 */
 	public function clean( array $args, array $assoc_args ): void {
 		unset( $args );
+		if ( empty( $assoc_args['i-have-a-backup'] ) ) {
+			WP_CLI::error( 'Refusing to delete without --i-have-a-backup. Run `wp optrion export` first and re-run this command with the acknowledgment flag.' );
+		}
 		$names = isset( $assoc_args['names'] ) ? array_filter( array_map( 'trim', explode( ',', (string) $assoc_args['names'] ) ) ) : array();
 		if ( empty( $names ) ) {
 			$accessor_type = isset( $assoc_args['accessor-type'] ) ? (string) $assoc_args['accessor-type'] : '';
@@ -256,18 +269,14 @@ final class CLI_Command {
 			WP_CLI::error( 'Nothing to delete. Provide --names, --accessor-type, or --inactive-only.' );
 		}
 
-		WP_CLI::confirm( sprintf( 'Delete %d option(s) (with automatic backup)?', count( $names ) ), $assoc_args );
+		WP_CLI::confirm( sprintf( 'Permanently delete %d option(s)? (no server-side backup is made)', count( $names ) ), $assoc_args );
 
 		$result = Cleaner::delete( $names );
-		if ( is_wp_error( $result ) ) {
-			WP_CLI::error( $result->get_error_message() );
-		}
 		WP_CLI::success(
 			sprintf(
-				'Deleted: %d, Skipped: %d, Backup: %s',
+				'Deleted: %d, Skipped: %d',
 				$result['deleted'],
-				$result['skipped'],
-				null === $result['backup_path'] ? '—' : (string) $result['backup_path']
+				$result['skipped']
 			)
 		);
 		foreach ( $result['errors'] as $err ) {
@@ -316,10 +325,7 @@ final class CLI_Command {
 
 		WP_CLI::confirm( sprintf( 'Delete %d expired transient row(s)?', count( $targets ) ), $assoc_args );
 		$result = Cleaner::delete( $targets );
-		if ( is_wp_error( $result ) ) {
-			WP_CLI::error( $result->get_error_message() );
-		}
-		WP_CLI::success( sprintf( 'Deleted: %d, Backup: %s', $result['deleted'], (string) $result['backup_path'] ) );
+		WP_CLI::success( sprintf( 'Deleted: %d', $result['deleted'] ) );
 	}
 
 	/**

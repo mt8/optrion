@@ -375,12 +375,8 @@ final class Rest_Controller {
 	 * @param WP_REST_Request $req Request.
 	 */
 	public static function delete_options( WP_REST_Request $req ) {
-		$names  = (array) $req['names'];
-		$result = Cleaner::delete( $names );
-		if ( $result instanceof WP_Error ) {
-			return $result;
-		}
-		return new WP_REST_Response( $result );
+		$names = (array) $req['names'];
+		return new WP_REST_Response( Cleaner::delete( $names ) );
 	}
 
 	/**

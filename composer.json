@@ -1,6 +1,6 @@
 {
     "name": "mt8/optrion",
-    "description": "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup.",
+    "description": "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {

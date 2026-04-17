@@ -102,8 +102,9 @@ const OptionsList = () => {
 		if (
 			! window.confirm(
 				sprintf(
+					/* translators: %d: number of options about to be deleted. */
 					__(
-						'Delete %d option(s)? (automatic backup will be made)',
+						'Permanently delete %d option(s)?\n\nOptrion does NOT write a server-side backup. If you want a restore copy, cancel this dialog, use "Export selected" to download a JSON file to your machine, then come back and delete.',
 						'optrion'
 					),
 					selected.size
@@ -114,7 +115,7 @@ const OptionsList = () => {
 		}
 		api.deleteOptions( Array.from( selected ) )
 			.then( ( res ) => {
-				const count = res && res.deleted ? res.deleted.length : selected.size;
+				const count = res && typeof res.deleted === 'number' ? res.deleted : selected.size;
 				setNotice( {
 					type: 'success',
 					/* translators: %d: number of deleted options. */
