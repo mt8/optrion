@@ -164,7 +164,7 @@ msgstr "option_name"
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:32
 msgid "Autoload"
-msgstr "autoload"
+msgstr "自動読み込み"
 
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:33
@@ -191,7 +191,7 @@ msgstr "オプション総数"
 #: build/index.js:1
 #: src/tabs/Dashboard.jsx:26
 msgid "Autoload payload"
-msgstr "autoload サイズ"
+msgstr "自動読み込みサイズ"
 
 #: build/index.js:1
 #: src/App.js:15
@@ -231,12 +231,12 @@ msgstr "すべて"
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:253
 msgid "Inactive accessors only"
-msgstr "無効化されたアクセス元のみ"
+msgstr "無効のアクセス元"
 
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:261
 msgid "Autoload only"
-msgstr "autoload のみ"
+msgstr "自動読み込みのみ"
 
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:269
@@ -306,7 +306,7 @@ msgstr "WordPress コアオプション — 保護されています"
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:382
 msgid "autoload"
-msgstr "autoload"
+msgstr "自動読み込み"
 
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:408
@@ -451,3 +451,15 @@ msgstr "各 wp_options 行にアクセスするプラグイン／テーマを追
 #: optrion.php
 msgid "mt8biz"
 msgstr "mt8biz"
+
+#: includes/class-plugin.php:56
+msgid "Optrion is active."
+msgstr "Optrion が有効化されています。"
+
+#: includes/class-plugin.php:57
+msgid "Optrion instruments every get_option() call to attribute reads to the right plugin or theme. This adds measurable overhead to admin page loads and is intended for short-term audits only — please deactivate the plugin once your current cleanup round is complete."
+msgstr "Optrion は get_option() のすべての呼び出しを追跡し、呼び出し元のプラグイン／テーマを特定します。管理画面の読み込みに無視できないオーバーヘッドが発生するため、短期間の棚卸し用途にのみ使用する設計です。クリーンアップが一段落したらプラグインを無効化してください。"
+
+#: includes/class-plugin.php:59
+msgid "Deactivate Optrion"
+msgstr "Optrion を無効化"
