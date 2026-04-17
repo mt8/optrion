@@ -1,0 +1,453 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Optrion 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/mt8/optrion/issues\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-04-17T01:51:06+00:00\n"
+"PO-Revision-Date: 2026-04-17T01:51:06+00:00\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: manual\n"
+"X-Domain: optrion\n"
+
+#: includes/class-cleaner.php:123
+msgid "Could not create backup directory."
+msgstr "バックアップディレクトリを作成できませんでした。"
+
+#: includes/class-cleaner.php:132
+msgid "Could not write backup file."
+msgstr "バックアップファイルを書き出せませんでした。"
+
+#. translators: %s: option_name that could not be deleted.
+#: includes/class-cleaner.php:87
+#, php-format
+msgid "Failed to delete %s."
+msgstr "%s の削除に失敗しました。"
+
+#. translators: %s: option_name that was protected.
+#: includes/class-cleaner.php:52
+#, php-format
+msgid "Skipped core option: %s"
+msgstr "コアオプションのためスキップしました: %s"
+
+#: includes/class-quarantine.php:289
+msgid "Could not delete the quarantined option row."
+msgstr "検疫中オプションの本削除に失敗しました。"
+
+#: includes/class-quarantine.php:177
+msgid "Could not record the quarantine manifest."
+msgstr "検疫マニフェストの記録に失敗しました。"
+
+#: includes/class-quarantine.php:233
+msgid "Could not rename the option row back."
+msgstr "オプションの名前を元に戻せませんでした。"
+
+#: includes/class-quarantine.php:127
+msgid "Could not rename the option row."
+msgstr "オプションのリネームに失敗しました。"
+
+#: includes/class-quarantine.php:500
+msgid "Option cannot be quarantined."
+msgstr "このオプションは検疫できません。"
+
+#: includes/class-quarantine.php:492
+msgid "Option is already quarantined."
+msgstr "既に検疫されています。"
+
+#: includes/class-quarantine.php:489
+msgid "Option name is empty."
+msgstr "オプション名が空です。"
+
+#: includes/class-quarantine.php:495
+msgid "Option name is too long to safely quarantine."
+msgstr "オプション名が長すぎるため、安全に検疫できません。"
+
+#: includes/class-quarantine.php:108
+msgid "Option not found in wp_options."
+msgstr "wp_options にオプションが見つかりません。"
+
+#: includes/class-quarantine.php:196
+#: includes/class-quarantine.php:268
+msgid "Quarantine entry is not active."
+msgstr "検疫エントリは有効ではありません。"
+
+#. translators: %d: maximum number of simultaneous quarantines.
+#: includes/class-quarantine.php:96
+#, php-format
+msgid "Quarantine limit reached (%d active)."
+msgstr "検疫の上限に達しました (有効件数: %d)。"
+
+#: includes/class-quarantine.php:193
+#: includes/class-quarantine.php:265
+msgid "Quarantine manifest row not found."
+msgstr "検疫マニフェストの行が見つかりません。"
+
+#: includes/class-quarantine.php:498
+msgid "WordPress core options cannot be quarantined."
+msgstr "WordPress コアオプションは検疫できません。"
+
+#: includes/class-importer.php:57
+#: includes/class-importer.php:98
+msgid "Entry missing option_name."
+msgstr "option_name が欠落しているエントリです。"
+
+#: includes/class-importer.php:190
+msgid "Export payload has no options list."
+msgstr "エクスポートデータに options リストがありません。"
+
+#: includes/class-importer.php:187
+msgid "Export payload is not valid JSON."
+msgstr "エクスポートデータが有効な JSON ではありません。"
+
+#. translators: %s: option name.
+#: includes/class-importer.php:122
+#, php-format
+msgid "Failed to insert %s."
+msgstr "%s の追加に失敗しました。"
+
+#. translators: %s: option name.
+#: includes/class-importer.php:152
+#, php-format
+msgid "Failed to overwrite %s."
+msgstr "%s の上書きに失敗しました。"
+
+#: includes/class-rest-controller.php:346
+msgid "Option not found."
+msgstr "オプションが見つかりません。"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:31
+#: src/tabs/OptionsList.jsx:237
+msgid "Accessor"
+msgstr "アクセス元"
+
+#. Plugin Name of the plugin
+#: optrion.php
+#: includes/class-admin-page.php:48
+#: includes/class-admin-page.php:49
+#: includes/class-admin-page.php:96
+msgid "Optrion"
+msgstr "Optrion"
+
+#. Plugin URI of the plugin
+#: optrion.php
+msgid "https://github.com/mt8/optrion"
+msgstr "https://github.com/mt8/optrion"
+
+#: includes/class-admin-page.php:99
+msgid "Loading Optrion…"
+msgstr "Optrion を読み込み中…"
+
+#: includes/class-admin-page.php:121
+msgid "Optrion admin UI build not found. Run `npm run build` in the plugin directory."
+msgstr "Optrion の管理 UI ビルドが見つかりません。プラグインディレクトリで `npm run build` を実行してください。"
+
+#. translators: %s: human-readable size limit.
+#: includes/class-importer.php:179
+#, php-format
+msgid "Import payload exceeds the %s size limit."
+msgstr "インポートデータが上限サイズ %s を超えています。"
+
+#: includes/class-quarantine.php:275
+msgid "This option is still being accessed. Restore it instead of deleting."
+msgstr "このオプションはまだアクセスされています。削除せず復元してください。"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:30
+msgid "option_name"
+msgstr "option_name"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:32
+msgid "Autoload"
+msgstr "autoload"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:33
+msgid "Size"
+msgstr "サイズ"
+
+#: build/index.js:1
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:34
+#: src/tabs/Quarantine.jsx:89
+msgid "Last accessed"
+msgstr "最終読み込み"
+
+#: build/index.js:1
+#: src/App.js:14
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+#: build/index.js:1
+#: src/tabs/Dashboard.jsx:25
+msgid "Total options"
+msgstr "オプション総数"
+
+#: build/index.js:1
+#: src/tabs/Dashboard.jsx:26
+msgid "Autoload payload"
+msgstr "autoload サイズ"
+
+#: build/index.js:1
+#: src/App.js:15
+msgid "Options"
+msgstr "オプション"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:201
+msgid "Accessor plugin/theme is currently inactive."
+msgstr "アクセス元のプラグイン／テーマは現在無効化されています。"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:206
+msgid "inactive"
+msgstr "無効"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:212
+msgid "WordPress core option — cannot be selected or deleted."
+msgstr "WordPress コアオプション — 選択・削除できません。"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:217
+msgid "protected"
+msgstr "保護"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:229
+msgid "Search"
+msgstr "検索"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:240
+msgid "All"
+msgstr "すべて"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:253
+msgid "Inactive accessors only"
+msgstr "無効化されたアクセス元のみ"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:261
+msgid "Autoload only"
+msgstr "autoload のみ"
+
+#: build/index.js:1
+#: src/tabs/OptionsList.jsx:269
+msgid "Show WordPress-Core"
+msgstr "WordPress コアのオプションを表示"
+
+#. translators: %d: number of quarantined options.
+#: build/index.js:3
+#: src/tabs/OptionsList.jsx:136
+#, js-format
+msgid "%d option(s) quarantined."
+msgstr "%d 件のオプションを検疫しました。"
+
+#: build/index.js:3
+#: src/tabs/OptionsList.jsx:280
+msgid "Quarantine selected"
+msgstr "選択項目を検疫"
+
+#. translators: %d: number of exported options.
+#: build/index.js:5
+#: src/tabs/OptionsList.jsx:161
+#, js-format
+msgid "%d option(s) exported."
+msgstr "%d 件のオプションをエクスポートしました。"
+
+#: build/index.js:5
+#: src/tabs/OptionsList.jsx:287
+msgid "Export selected"
+msgstr "選択項目をエクスポート"
+
+#: build/index.js:5
+#: src/tabs/OptionsList.jsx:105
+#, js-format
+msgid "Delete %d option(s)? (automatic backup will be made)"
+msgstr "%d 件のオプションを削除しますか？（自動バックアップを作成します）"
+
+#. translators: %d: number of deleted options.
+#: build/index.js:7
+#: src/tabs/OptionsList.jsx:121
+#, js-format
+msgid "%d option(s) deleted."
+msgstr "%d 件のオプションを削除しました。"
+
+#: build/index.js:7
+#: src/tabs/OptionsList.jsx:295
+msgid "Delete selected"
+msgstr "選択項目を削除"
+
+#: build/index.js:7
+#: src/tabs/OptionsList.jsx:299
+#, js-format
+msgid "%1$d selected · %2$d matches"
+msgstr "%1$d 件選択中 · %2$d 件該当"
+
+#. translators: %s: column heading label (e.g. "Size").
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:331
+#, js-format
+msgid "Sort by %s"
+msgstr "%s で並び替え"
+
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:364
+msgid "WordPress core option — protected"
+msgstr "WordPress コアオプション — 保護されています"
+
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:382
+msgid "autoload"
+msgstr "autoload"
+
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:408
+msgid "Previous"
+msgstr "前へ"
+
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:410
+#, js-format
+msgid "Page %d"
+msgstr "%d ページ"
+
+#: build/index.js:8
+#: src/tabs/OptionsList.jsx:416
+msgid "Next"
+msgstr "次へ"
+
+#: build/index.js:8
+#: src/App.js:16
+msgid "Quarantine"
+msgstr "検疫"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:67
+msgid "Status"
+msgstr "状態"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:70
+msgid "Active"
+msgstr "検疫中"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:72
+msgid "Restored"
+msgstr "復元済み"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:75
+msgid "Deleted"
+msgstr "削除済み"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:86
+msgid "Original name"
+msgstr "元の名前"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:87
+msgid "Quarantined at"
+msgstr "検疫日時"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:88
+msgid "Expires at"
+msgstr "期限"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:90
+msgid "Actions"
+msgstr "操作"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:101
+msgid "This option was accessed after quarantine. It may still be in use."
+msgstr "このオプションは検疫後にアクセスされています。まだ使用中の可能性があります。"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:106
+msgid "still accessed"
+msgstr "アクセスあり"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:31
+msgid "Option restored."
+msgstr "オプションを復元しました。"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:122
+msgid "Restore"
+msgstr "復元"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:39
+msgid "Permanently delete this quarantined option?"
+msgstr "検疫中のこのオプションを本削除しますか？"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:49
+msgid "Option permanently deleted."
+msgstr "オプションを本削除しました。"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:131
+msgid "Delete"
+msgstr "削除"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:145
+msgid "No entries."
+msgstr "該当する項目はありません。"
+
+#: build/index.js:8
+#: src/App.js:17
+#: src/tabs/Import.jsx:64
+msgid "Import"
+msgstr "インポート"
+
+#: build/index.js:8
+#: src/tabs/Import.jsx:55
+msgid "Overwrite existing rows"
+msgstr "既存行を上書きする"
+
+#: build/index.js:8
+#: src/tabs/Import.jsx:61
+msgid "Dry run"
+msgstr "ドライラン"
+
+#: build/index.js:8
+#: src/tabs/Import.jsx:71
+#, js-format
+msgid "Preview — add: %1$d, overwrite: %2$d"
+msgstr "プレビュー — 追加: %1$d 件、上書き: %2$d 件"
+
+#: build/index.js:8
+#: src/tabs/Import.jsx:80
+#, js-format
+msgid "Import complete — added: %1$d, overwritten: %2$d, skipped: %3$d"
+msgstr "インポート完了 — 追加: %1$d 件、上書き: %2$d 件、スキップ: %3$d 件"
+
+#: build/index.js:8
+#: src/index.js:22
+msgid "Optrion mount node not found."
+msgstr "Optrion のマウント先ノードが見つかりません。"
+
+#. Description of the plugin
+#: optrion.php
+msgid "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup."
+msgstr "各 wp_options 行にアクセスするプラグイン／テーマを追跡し、孤立したオプションを自動バックアップ付きで検疫または削除します。"
+
+#. Author of the plugin
+#: optrion.php
+msgid "mt8biz"
+msgstr "mt8biz"

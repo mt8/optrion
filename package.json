@@ -1,0 +1,32 @@
+{
+  "name": "optrion",
+  "version": "1.0.0",
+  "description": "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup.",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "env": "wp-env",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "env:clean": "wp-env clean all",
+    "test": "wp-env run tests-cli --env-cwd=wp-content/plugins/optrion composer test",
+    "lint:php": "wp-env run cli --env-cwd=wp-content/plugins/optrion composer lint",
+    "lint:js": "wp-scripts lint-js",
+    "lint:staged": "./vendor/bin/phpcs",
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "format": "wp-scripts format",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0",
+    "@wordpress/scripts": "^30.27.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "*.php": [
+      "./vendor/bin/phpcs"
+    ]
+  }
+}

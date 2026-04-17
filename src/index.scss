@@ -1,0 +1,154 @@
+.optrion-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+
+	.optrion-title__logo {
+		width: 32px;
+		height: 32px;
+		flex: 0 0 auto;
+	}
+}
+
+.optrion-app {
+	margin-top: 16px;
+
+	.optrion-tabs {
+		margin-bottom: 16px;
+	}
+
+	.optrion-tab-panel {
+		background: #fff;
+		border: 1px solid #c3c4c7;
+		border-radius: 0 4px 4px 4px;
+		padding: 16px 20px;
+	}
+
+	.optrion-error {
+		color: #b32d2e;
+		background: #fcf0f1;
+		padding: 8px 12px;
+		border-left: 4px solid #b32d2e;
+	}
+
+	.optrion-cards {
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.optrion-card {
+		flex: 1 1 200px;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		padding: 12px 16px;
+		background: #f6f7f7;
+
+		&__label {
+			font-size: 12px;
+			color: #50575e;
+		}
+
+		&__value {
+			font-size: 24px;
+			font-weight: 600;
+			margin-top: 4px;
+		}
+	}
+
+	.optrion-filters {
+		display: flex;
+		gap: 12px;
+		align-items: flex-end;
+		margin-bottom: 12px;
+		flex-wrap: wrap;
+
+		> * {
+			flex: 0 0 180px;
+		}
+	}
+
+	.optrion-bulk {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		margin-bottom: 12px;
+
+		&__hint {
+			margin-left: auto;
+			color: #50575e;
+			font-size: 13px;
+		}
+	}
+
+	.optrion-pager {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		margin-top: 12px;
+	}
+
+	.optrion-accessor-type {
+		color: #646970;
+		font-size: 11px;
+	}
+
+	.optrion-badge {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 1px 6px;
+		border-radius: 8px;
+		font-size: 10px;
+		line-height: 1.6;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.optrion-badge--protected {
+		background: #dcdcde;
+		color: #3c434a;
+	}
+
+	.optrion-badge--warning {
+		background: #fcf0e3;
+		color: #8a6d3b;
+	}
+
+	.optrion-row--protected td {
+		color: #646970;
+	}
+
+	.optrion-sort-button {
+		background: none;
+		border: 0;
+		padding: 0;
+		margin: 0;
+		font: inherit;
+		color: inherit;
+		cursor: pointer;
+		text-align: left;
+		text-decoration: underline dotted transparent;
+
+		&:hover,
+		&:focus-visible {
+			text-decoration-color: currentColor;
+			color: #2271b1;
+		}
+	}
+
+	.optrion-badge--inactive {
+		background: #fde2e2;
+		color: #8a1f11;
+	}
+	.optrion-badge--autoload {
+		background: #e7f0fa;
+		color: #2a5ca0;
+	}
+	.optrion-muted { color: #646970; }
+
+	.optrion-import__actions {
+		display: flex;
+		gap: 8px;
+		margin: 12px 0;
+	}
+}
