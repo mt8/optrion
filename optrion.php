@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/mt8/optrion
  * Description:       Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans.
  * Version:           1.0.0
- * Requires at least: 5.8
+ * Requires at least: 6.8
  * Requires PHP:      8.3
  * Author:            mt8biz
  * License:           GPL-2.0-or-later
