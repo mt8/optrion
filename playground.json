@@ -37,6 +37,20 @@
         "resource": "wordpress.org/plugins",
         "slug": "classic-editor"
       }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "jetpack"
+      }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "duplicate-post"
+      }
     }
   ]
 }
