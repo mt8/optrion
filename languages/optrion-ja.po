@@ -123,7 +123,7 @@ msgstr "オプションが見つかりません。"
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:31
 #: src/tabs/OptionsList.jsx:237
-#: src/tabs/Quarantine.jsx:91
+#: src/tabs/Quarantine.jsx:92
 msgid "Accessor"
 msgstr "アクセス元"
 
@@ -176,7 +176,7 @@ msgstr "サイズ"
 #: build/index.js:1
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:34
-#: src/tabs/Quarantine.jsx:89
+#: src/tabs/Quarantine.jsx:90
 msgid "Last accessed"
 msgstr "最終読み込み"
 
@@ -285,34 +285,34 @@ msgstr "%1$d 件選択中 · %2$d 件該当"
 
 #. translators: %s: column heading label (e.g. "Size").
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:331
+#: src/tabs/OptionsList.jsx:332
 #, js-format
 msgid "Sort by %s"
 msgstr "%s で並び替え"
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:364
+#: src/tabs/OptionsList.jsx:365
 msgid "WordPress core option — protected"
 msgstr "WordPress コアオプション — 保護されています"
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:382
+#: src/tabs/OptionsList.jsx:383
 msgid "autoload"
 msgstr "自動読み込み"
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:408
+#: src/tabs/OptionsList.jsx:410
 msgid "Previous"
 msgstr "前へ"
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:410
+#: src/tabs/OptionsList.jsx:412
 #, js-format
 msgid "Page %d"
 msgstr "%d ページ"
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:416
+#: src/tabs/OptionsList.jsx:418
 msgid "Next"
 msgstr "次へ"
 
@@ -337,22 +337,22 @@ msgid "Deleted"
 msgstr "削除済み"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:86
+#: src/tabs/Quarantine.jsx:87
 msgid "Original name"
 msgstr "元の名前"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:87
+#: src/tabs/Quarantine.jsx:88
 msgid "Quarantined at"
 msgstr "検疫日時"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:88
+#: src/tabs/Quarantine.jsx:89
 msgid "Expires at"
 msgstr "期限"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:92
+#: src/tabs/Quarantine.jsx:93
 msgid "Actions"
 msgstr "操作"
 
@@ -362,7 +362,7 @@ msgid "Option restored."
 msgstr "オプションを復元しました。"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:144
+#: src/tabs/Quarantine.jsx:145
 msgid "Restore"
 msgstr "復元"
 
@@ -377,12 +377,12 @@ msgid "Option permanently deleted."
 msgstr "オプションを本削除しました。"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:153
+#: src/tabs/Quarantine.jsx:154
 msgid "Delete"
 msgstr "削除"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:167
+#: src/tabs/Quarantine.jsx:168
 msgid "No entries."
 msgstr "該当する項目はありません。"
 
@@ -437,16 +437,16 @@ msgid "Deactivate Optrion"
 msgstr "Optrion を無効化"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:90
+#: src/tabs/Quarantine.jsx:91
 msgid "Access count"
 msgstr "アクセス回数"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:103
+#: src/tabs/Quarantine.jsx:104
 msgid "This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore."
 msgstr "検疫後にアクセスがありました。サイト動作維持のため復元してください。復元されるまで自動期限切れは一時停止されます。"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:108
+#: src/tabs/Quarantine.jsx:109
 msgid "in use — restore"
 msgstr "使用中・要復元"

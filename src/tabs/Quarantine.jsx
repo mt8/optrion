@@ -80,6 +80,7 @@ const Quarantine = () => {
 			{ loading ? (
 				<Spinner />
 			) : (
+				<div className="optrion-table-scroll">
 				<table className="widefat striped">
 					<thead>
 						<tr>
@@ -170,6 +171,7 @@ const Quarantine = () => {
 						) }
 					</tbody>
 				</table>
+				</div>
 			) }
 		</div>
 	);

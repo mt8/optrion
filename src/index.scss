@@ -10,6 +10,16 @@
 	}
 }
 
+.optrion-table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	width: 100%;
+
+	table {
+		min-width: 640px;
+	}
+}
+
 .optrion-app {
 	margin-top: 16px;
 

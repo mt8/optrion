@@ -315,6 +315,7 @@ const OptionsList = () => {
 			{ loading ? (
 				<Spinner />
 			) : (
+				<div className="optrion-table-scroll">
 				<table className="widefat striped">
 					<thead>
 						<tr>
@@ -398,6 +399,7 @@ const OptionsList = () => {
 						) ) }
 					</tbody>
 				</table>
+				</div>
 			) }
 			<div className="optrion-pager">
 				<Button

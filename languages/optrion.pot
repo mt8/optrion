@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-17T04:34:39+00:00\n"
+"POT-Creation-Date: 2026-04-17T07:44:43+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: optrion\n"
@@ -181,7 +181,7 @@ msgstr ""
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:31
 #: src/tabs/OptionsList.jsx:237
-#: src/tabs/Quarantine.jsx:91
+#: src/tabs/Quarantine.jsx:92
 msgid "Accessor"
 msgstr ""
 
@@ -198,7 +198,7 @@ msgstr ""
 #: build/index.js:1
 #: build/index.js:8
 #: src/tabs/OptionsList.jsx:34
-#: src/tabs/Quarantine.jsx:89
+#: src/tabs/Quarantine.jsx:90
 msgid "Last accessed"
 msgstr ""
 
@@ -317,34 +317,34 @@ msgstr ""
 
 #. translators: %s: column heading label (e.g. "Size").
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:331
+#: src/tabs/OptionsList.jsx:332
 #, js-format
 msgid "Sort by %s"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:364
+#: src/tabs/OptionsList.jsx:365
 msgid "WordPress core option — protected"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:382
+#: src/tabs/OptionsList.jsx:383
 msgid "autoload"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:408
+#: src/tabs/OptionsList.jsx:410
 msgid "Previous"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:410
+#: src/tabs/OptionsList.jsx:412
 #, js-format
 msgid "Page %d"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/OptionsList.jsx:416
+#: src/tabs/OptionsList.jsx:418
 msgid "Next"
 msgstr ""
 
@@ -374,37 +374,37 @@ msgid "Deleted"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:86
+#: src/tabs/Quarantine.jsx:87
 msgid "Original name"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:87
+#: src/tabs/Quarantine.jsx:88
 msgid "Quarantined at"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:88
+#: src/tabs/Quarantine.jsx:89
 msgid "Expires at"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:90
+#: src/tabs/Quarantine.jsx:91
 msgid "Access count"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:92
+#: src/tabs/Quarantine.jsx:93
 msgid "Actions"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:103
+#: src/tabs/Quarantine.jsx:104
 msgid "This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:108
+#: src/tabs/Quarantine.jsx:109
 msgid "in use — restore"
 msgstr ""
 
@@ -414,7 +414,7 @@ msgid "Option restored."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:144
+#: src/tabs/Quarantine.jsx:145
 msgid "Restore"
 msgstr ""
 
@@ -429,12 +429,12 @@ msgid "Option permanently deleted."
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:153
+#: src/tabs/Quarantine.jsx:154
 msgid "Delete"
 msgstr ""
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:167
+#: src/tabs/Quarantine.jsx:168
 msgid "No entries."
 msgstr ""
 
