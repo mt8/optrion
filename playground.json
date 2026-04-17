@@ -51,13 +51,6 @@
         "resource": "wordpress.org/plugins",
         "slug": "duplicate-post"
       }
-    },
-    {
-      "step": "installPlugin",
-      "pluginData": {
-        "resource": "wordpress.org/plugins",
-        "slug": "disable-comments"
-      }
     }
   ]
 }
