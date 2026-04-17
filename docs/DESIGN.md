@@ -175,7 +175,7 @@ per-name フィルタを `plugins_loaded` 優先度 10 で登録するのは、Y
 #### 管理画面での扱い
 
 - 一覧テーブルに accessor（表示名＋type＋inactive バッジ）、autoload バッジ、サイズ、最終読み込み日時を個別カラムで表示
-- ソート: option_name / accessor / autoload / size / last_read
+- ソート: option_name / accessor（accessor.name → slug → type の優先順で表示ラベル昇順）/ size / last_read。autoload はバイナリバッジのためソート対象外
 - フィルタ: accessor type、`inactive_only`（inactive なアクセス元のみ）、`autoload_only`（autoload=yes のみ）、`search`（option_name 部分一致）
 - `_transient_*` / `_site_transient_*` と自プラグイン内部オプション（`optrion_*`, `_optrion_q__*`）は一覧から除外
 
