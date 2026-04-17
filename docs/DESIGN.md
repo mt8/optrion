@@ -111,12 +111,15 @@ wp_options 自体は改変せず、追跡情報を別テーブルで管理する
 
 #### フック戦略
 
-WordPress には全オプション共通の `pre_option` フックが存在しないため、2系統でカバーする。
+`get_option()` 1回ごとの呼び出し元を正確に識別できるのは `option_{$name}` フィルタだけなので、**全オプションに対して動的に `option_{$name}` フィルタを登録**する。autoload/非autoload の区別はしない。
 
 | 対象 | フック | 説明 |
 |---|---|---|
-| autoload=yes のオプション群 | `alloptions` フィルタ | WordPress が全 autoload オプションをまとめて読む時点で一括検知 |
-| autoload=no の個別オプション | `option_{$name}` フィルタ（動的登録） | admin_init 時に非 autoload オプション名一覧を取得し、ループで動的にフィルタ登録 |
+| すべての `wp_options` 行 | `option_{$name}` フィルタ（動的登録） | `plugins_loaded` 優先度 10 で全オプション名を取得し、ループで動的にフィルタ登録。`get_option()` のたびに発火するため、バックトレースから真の呼び出し元（プラグイン/テーマ）を正確に特定できる |
+
+`alloptions` フィルタは**使用しない**。`wp_load_alloptions()` は 1 リクエスト中に何度も発火し、かつ「全 autoload オプションに単一の呼び出し元をまとめて attribution する」性質上、ある瞬間の呼び出し元（Yoast 等）が無関係のオプション（WooCommerce 等）にまで上書きされてしまうため。個別に `get_option()` されない autoload オプションは tracking テーブルに行が作られないが、`list_options` REST エンドポイントは `wp_options` を起点にスコアを算出するので UI 表示には影響しない（`tracking=null` として「未読」相当のスコアが付く）。
+
+per-name フィルタを `plugins_loaded` 優先度 10 で登録するのは、Yoast SEO 等が `plugins_loaded` 優先度 14 で `get_option()` を呼ぶケースを取り逃がさないため（`admin_init` まで待つとそれらの読み込みが attribution されない）。
 
 #### 呼び出し元の特定
 

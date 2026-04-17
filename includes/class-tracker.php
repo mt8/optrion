@@ -64,9 +64,10 @@ final class Tracker {
 	/**
 	 * Registers tracking hooks for the current request.
 	 *
-	 * Safe to call once on `plugins_loaded`. The individual filter callbacks
-	 * short-circuit if tracking is not active so that inactive sites pay only
-	 * the cost of a transient lookup.
+	 * Intended to be called once on `plugins_loaded` (priority 10). The per-
+	 * name filters are registered immediately so that plugins hooking later
+	 * into `plugins_loaded` (e.g. Yoast SEO at priority 14) have their
+	 * `get_option()` calls captured with a correct backtrace.
 	 */
 	public static function boot(): void {
 		if ( self::$booted ) {
@@ -82,8 +83,7 @@ final class Tracker {
 		}
 		self::$request_sampled = true;
 
-		add_filter( 'alloptions', array( self::class, 'record_alloptions' ), 999 );
-		add_action( 'admin_init', array( self::class, 'register_non_autoload_hooks' ), 999 );
+		self::register_option_read_hooks();
 		add_action( 'shutdown', array( self::class, 'flush' ), 0 );
 	}
 
@@ -129,35 +129,22 @@ final class Tracker {
 	}
 
 	/**
-	 * Filter callback for `alloptions`: records every autoload option name.
+	 * Registers `option_{$name}` filters for every option row.
 	 *
-	 * @param mixed $alloptions The raw `alloptions` payload; normally an array.
-	 * @return mixed The payload unchanged.
+	 * One filter per option is the only way to attribute an individual
+	 * `get_option()` read to its caller: the filter fires at the moment of
+	 * the call, so `debug_backtrace()` shows the plugin/theme that asked.
+	 * The `alloptions` filter is deliberately not used — it fires in bulk
+	 * during core bootstrap (well before the real consumer reads), would
+	 * attribute every autoloaded option to whichever frame happens to be
+	 * on the stack when `wp_load_alloptions()` is first triggered, and
+	 * inflates read counts by mass-recording every autoloaded name on each
+	 * subsequent invocation.
 	 */
-	public static function record_alloptions( $alloptions ) {
-		if ( ! is_array( $alloptions ) ) {
-			return $alloptions;
-		}
-		$reader = self::identify_caller();
-		$now    = current_time( 'mysql', true );
-		foreach ( array_keys( $alloptions ) as $name ) {
-			self::buffer_record( (string) $name, $reader, $now );
-		}
-		return $alloptions;
-	}
-
-	/**
-	 * Registers `option_{$name}` filters for every non-autoload option.
-	 *
-	 * Runs on admin_init so that autoload-flagged rows (already covered by
-	 * the `alloptions` filter) are not double-registered.
-	 */
-	public static function register_non_autoload_hooks(): void {
+	public static function register_option_read_hooks(): void {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$names = $wpdb->get_col(
-			"SELECT option_name FROM {$wpdb->options} WHERE autoload NOT IN ('yes','on','auto','auto-on')"
-		);
+		$names = $wpdb->get_col( "SELECT option_name FROM {$wpdb->options}" );
 		if ( ! is_array( $names ) ) {
 			return;
 		}
