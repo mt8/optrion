@@ -34,59 +34,59 @@ msgstr "%s の削除に失敗しました。"
 msgid "Skipped core option: %s"
 msgstr "コアオプションのためスキップしました: %s"
 
-#: includes/class-quarantine.php:289
+#: includes/class-quarantine.php:335
 msgid "Could not delete the quarantined option row."
 msgstr "検疫中オプションの本削除に失敗しました。"
 
-#: includes/class-quarantine.php:177
+#: includes/class-quarantine.php:205
 msgid "Could not record the quarantine manifest."
 msgstr "検疫マニフェストの記録に失敗しました。"
 
-#: includes/class-quarantine.php:233
+#: includes/class-quarantine.php:275
 msgid "Could not rename the option row back."
 msgstr "オプションの名前を元に戻せませんでした。"
 
-#: includes/class-quarantine.php:127
+#: includes/class-quarantine.php:155
 msgid "Could not rename the option row."
 msgstr "オプションのリネームに失敗しました。"
 
-#: includes/class-quarantine.php:500
+#: includes/class-quarantine.php:691
 msgid "Option cannot be quarantined."
 msgstr "このオプションは検疫できません。"
 
-#: includes/class-quarantine.php:492
+#: includes/class-quarantine.php:683
 msgid "Option is already quarantined."
 msgstr "既に検疫されています。"
 
-#: includes/class-quarantine.php:489
+#: includes/class-quarantine.php:680
 msgid "Option name is empty."
 msgstr "オプション名が空です。"
 
-#: includes/class-quarantine.php:495
+#: includes/class-quarantine.php:686
 msgid "Option name is too long to safely quarantine."
 msgstr "オプション名が長すぎるため、安全に検疫できません。"
 
-#: includes/class-quarantine.php:108
+#: includes/class-quarantine.php:136
 msgid "Option not found in wp_options."
 msgstr "wp_options にオプションが見つかりません。"
 
-#: includes/class-quarantine.php:196
-#: includes/class-quarantine.php:268
+#: includes/class-quarantine.php:238
+#: includes/class-quarantine.php:314
 msgid "Quarantine entry is not active."
 msgstr "検疫エントリは有効ではありません。"
 
 #. translators: %d: maximum number of simultaneous quarantines.
-#: includes/class-quarantine.php:96
+#: includes/class-quarantine.php:124
 #, php-format
 msgid "Quarantine limit reached (%d active)."
 msgstr "検疫の上限に達しました (有効件数: %d)。"
 
-#: includes/class-quarantine.php:193
-#: includes/class-quarantine.php:265
+#: includes/class-quarantine.php:235
+#: includes/class-quarantine.php:311
 msgid "Quarantine manifest row not found."
 msgstr "検疫マニフェストの行が見つかりません。"
 
-#: includes/class-quarantine.php:498
+#: includes/class-quarantine.php:689
 msgid "WordPress core options cannot be quarantined."
 msgstr "WordPress コアオプションは検疫できません。"
 
@@ -120,8 +120,10 @@ msgid "Option not found."
 msgstr "オプションが見つかりません。"
 
 #: build/index.js:1
+#: build/index.js:8
 #: src/tabs/OptionsList.jsx:31
 #: src/tabs/OptionsList.jsx:237
+#: src/tabs/Quarantine.jsx:91
 msgid "Accessor"
 msgstr "アクセス元"
 
@@ -152,7 +154,7 @@ msgstr "Optrion の管理 UI ビルドが見つかりません。プラグイン
 msgid "Import payload exceeds the %s size limit."
 msgstr "インポートデータが上限サイズ %s を超えています。"
 
-#: includes/class-quarantine.php:275
+#: includes/class-quarantine.php:321
 msgid "This option is still being accessed. Restore it instead of deleting."
 msgstr "このオプションはまだアクセスされています。削除せず復元してください。"
 
@@ -179,11 +181,6 @@ msgid "Last accessed"
 msgstr "最終読み込み"
 
 #: build/index.js:1
-#: src/App.js:14
-msgid "Dashboard"
-msgstr "ダッシュボード"
-
-#: build/index.js:1
 #: src/tabs/Dashboard.jsx:25
 msgid "Total options"
 msgstr "オプション総数"
@@ -192,11 +189,6 @@ msgstr "オプション総数"
 #: src/tabs/Dashboard.jsx:26
 msgid "Autoload payload"
 msgstr "自動読み込みサイズ"
-
-#: build/index.js:1
-#: src/App.js:15
-msgid "Options"
-msgstr "オプション"
 
 #: build/index.js:1
 #: src/tabs/OptionsList.jsx:201
@@ -325,11 +317,6 @@ msgid "Next"
 msgstr "次へ"
 
 #: build/index.js:8
-#: src/App.js:16
-msgid "Quarantine"
-msgstr "検疫"
-
-#: build/index.js:8
 #: src/tabs/Quarantine.jsx:67
 msgid "Status"
 msgstr "状態"
@@ -365,19 +352,9 @@ msgid "Expires at"
 msgstr "期限"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:90
+#: src/tabs/Quarantine.jsx:92
 msgid "Actions"
 msgstr "操作"
-
-#: build/index.js:8
-#: src/tabs/Quarantine.jsx:101
-msgid "This option was accessed after quarantine. It may still be in use."
-msgstr "このオプションは検疫後にアクセスされています。まだ使用中の可能性があります。"
-
-#: build/index.js:8
-#: src/tabs/Quarantine.jsx:106
-msgid "still accessed"
-msgstr "アクセスあり"
 
 #: build/index.js:8
 #: src/tabs/Quarantine.jsx:31
@@ -385,7 +362,7 @@ msgid "Option restored."
 msgstr "オプションを復元しました。"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:122
+#: src/tabs/Quarantine.jsx:144
 msgid "Restore"
 msgstr "復元"
 
@@ -400,12 +377,12 @@ msgid "Option permanently deleted."
 msgstr "オプションを本削除しました。"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:131
+#: src/tabs/Quarantine.jsx:153
 msgid "Delete"
 msgstr "削除"
 
 #: build/index.js:8
-#: src/tabs/Quarantine.jsx:145
+#: src/tabs/Quarantine.jsx:167
 msgid "No entries."
 msgstr "該当する項目はありません。"
 
@@ -437,11 +414,6 @@ msgstr "プレビュー — 追加: %1$d 件、上書き: %2$d 件"
 msgid "Import complete — added: %1$d, overwritten: %2$d, skipped: %3$d"
 msgstr "インポート完了 — 追加: %1$d 件、上書き: %2$d 件、スキップ: %3$d 件"
 
-#: build/index.js:8
-#: src/index.js:22
-msgid "Optrion mount node not found."
-msgstr "Optrion のマウント先ノードが見つかりません。"
-
 #. Description of the plugin
 #: optrion.php
 msgid "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans with an automatic backup."
@@ -452,14 +424,29 @@ msgstr "各 wp_options 行にアクセスするプラグイン／テーマを追
 msgid "mt8biz"
 msgstr "mt8biz"
 
-#: includes/class-plugin.php:56
+#: includes/class-plugin.php:62
 msgid "Optrion is active."
 msgstr "Optrion が有効化されています。"
 
-#: includes/class-plugin.php:57
+#: includes/class-plugin.php:63
 msgid "Optrion instruments every get_option() call to attribute reads to the right plugin or theme. This adds measurable overhead to admin page loads and is intended for short-term audits only — please deactivate the plugin once your current cleanup round is complete."
 msgstr "Optrion は get_option() のすべての呼び出しを追跡し、呼び出し元のプラグイン／テーマを特定します。管理画面の読み込みに無視できないオーバーヘッドが発生するため、短期間の棚卸し用途にのみ使用する設計です。クリーンアップが一段落したらプラグインを無効化してください。"
 
-#: includes/class-plugin.php:59
+#: includes/class-plugin.php:65
 msgid "Deactivate Optrion"
 msgstr "Optrion を無効化"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:90
+msgid "Access count"
+msgstr "アクセス回数"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:103
+msgid "This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore."
+msgstr "検疫後にアクセスがありました。サイト動作維持のため復元してください。復元されるまで自動期限切れは一時停止されます。"
+
+#: build/index.js:8
+#: src/tabs/Quarantine.jsx:108
+msgid "in use — restore"
+msgstr "使用中・要復元"

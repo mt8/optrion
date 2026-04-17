@@ -87,6 +87,8 @@ const Quarantine = () => {
 							<th>{ __( 'Quarantined at', 'optrion' ) }</th>
 							<th>{ __( 'Expires at', 'optrion' ) }</th>
 							<th>{ __( 'Last accessed', 'optrion' ) }</th>
+							<th>{ __( 'Access count', 'optrion' ) }</th>
+							<th>{ __( 'Accessor', 'optrion' ) }</th>
 							<th>{ __( 'Actions', 'optrion' ) }</th>
 						</tr>
 					</thead>
@@ -99,17 +101,37 @@ const Quarantine = () => {
 										<span
 											className="optrion-badge optrion-badge--warning"
 											title={ __(
-												'This option was accessed after quarantine. It may still be in use.',
+												'This option was accessed after quarantine. Restore it to keep the site working; auto-expiry is paused until you restore.',
 												'optrion'
 											) }
 										>
-											{ __( 'still accessed', 'optrion' ) }
+											{ __( 'in use — restore', 'optrion' ) }
 										</span>
 									) }
 								</td>
 								<td>{ row.quarantined_at }</td>
 								<td>{ row.expires_at }</td>
-								<td>{ row.last_read_at || '—' }</td>
+								<td>{ row.last_accessed_at || '—' }</td>
+								<td>
+									{ row.access_count_during_quarantine > 0
+										? row.access_count_during_quarantine
+										: '—' }
+								</td>
+								<td>
+									{ row.accessor_during_quarantine ? (
+										<>
+											{ row.accessor_during_quarantine }
+											{ row.accessor_type_during_quarantine && (
+												<span className="optrion-accessor-type">
+													{ ' ' }
+													({ row.accessor_type_during_quarantine })
+												</span>
+											) }
+										</>
+									) : (
+										'—'
+									) }
+								</td>
 								<td>
 									{ 'active' === status && (
 										<>
@@ -141,7 +163,7 @@ const Quarantine = () => {
 						) ) }
 						{ rows.length === 0 && (
 							<tr>
-								<td colSpan="5">
+								<td colSpan="7">
 									{ __( 'No entries.', 'optrion' ) }
 								</td>
 							</tr>

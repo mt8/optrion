@@ -26,6 +26,7 @@ class QuarantineTest extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		Schema::install();
+		Quarantine::reset_for_test();
 		global $wpdb;
 		// phpcs:ignore WordPress.DB
 		$wpdb->query( 'DELETE FROM ' . Schema::quarantine_table() );
@@ -251,5 +252,62 @@ class QuarantineTest extends WP_UnitTestCase {
 		$this->assertSame( 30, Quarantine::configured_expiry_days() );
 		update_option( Quarantine::EXPIRY_DAYS_OPTION, 14 );
 		$this->assertSame( 14, Quarantine::configured_expiry_days() );
+	}
+
+	/**
+	 * Quarantined options still return their value via the pre_option filter,
+	 * and each read records an access against the manifest so the admin can
+	 * see the option is still in use.
+	 */
+	public function test_quarantined_option_is_read_transparently(): void {
+		add_option( 'transparent_opt', 'keep-me', '', 'no' );
+		$id = Quarantine::quarantine( 'transparent_opt' );
+		$this->assertIsInt( $id );
+
+		// Site-visible behavior is unchanged — get_option keeps returning the value.
+		$this->assertSame( 'keep-me', get_option( 'transparent_opt' ) );
+
+		// Flush the per-request buffer so the manifest reflects the access.
+		Quarantine::flush_access_buffer();
+
+		$manifest = Quarantine::get_manifest( (int) $id );
+		$this->assertNotNull( $manifest );
+		$this->assertNotEmpty( $manifest['last_accessed_at'] );
+		$this->assertGreaterThanOrEqual( 1, (int) $manifest['access_count_during_quarantine'] );
+	}
+
+	/**
+	 * Delete is blocked whenever the pre_option filter recorded an access on
+	 * the manifest during the quarantine window.
+	 */
+	public function test_delete_is_blocked_when_accessed_during_quarantine(): void {
+		add_option( 'in_use_opt', 'still_needed', '', 'no' );
+		$id = Quarantine::quarantine( 'in_use_opt' );
+		$this->assertIsInt( $id );
+
+		// Simulate a read while the option is quarantined.
+		get_option( 'in_use_opt' );
+		Quarantine::flush_access_buffer();
+
+		$result = Quarantine::delete_permanently( (int) $id );
+		$this->assertWPError( $result );
+		$this->assertSame( 'optrion_still_accessed', $result->get_error_code() );
+	}
+
+	/**
+	 * Delete succeeds when nothing accessed the option during the window —
+	 * the observational model's green-light case.
+	 */
+	public function test_delete_allowed_when_not_accessed(): void {
+		add_option( 'unused_opt', 'nobody_reads_me', '', 'no' );
+		$id = Quarantine::quarantine( 'unused_opt' );
+		$this->assertIsInt( $id );
+
+		// No get_option() call here — the manifest stays unflagged.
+		$result = Quarantine::delete_permanently( (int) $id );
+		$this->assertTrue( $result );
+
+		$manifest = Quarantine::get_manifest( (int) $id );
+		$this->assertSame( Quarantine::STATUS_DELETED, $manifest['status'] );
 	}
 }

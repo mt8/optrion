@@ -70,6 +70,34 @@ final class Quarantine {
 	public const EXPIRY_ACTION_OPTION = 'optrion_quarantine_expiry_action';
 
 	/**
+	 * In-memory cache of active-quarantine values keyed by original_name.
+	 *
+	 * Populated once per request in {@see self::register_active_filters()}
+	 * so the pre_option filter callback does not hit the DB on every read.
+	 *
+	 * @var array<string,mixed>
+	 */
+	private static array $filter_value_cache = array();
+
+	/**
+	 * Access accumulator buffered during the request and flushed on shutdown.
+	 *
+	 * Keyed by original_name. Each entry records the latest accessor, the
+	 * access timestamp, and the per-request access count so the shutdown
+	 * handler can update the manifest in one pass.
+	 *
+	 * @var array<string,array{count:int,last:string,reader:string,type:string}>
+	 */
+	private static array $access_buffer = array();
+
+	/**
+	 * Tracks whether the shutdown flush has already been registered.
+	 *
+	 * @var bool
+	 */
+	private static bool $flush_registered = false;
+
+	/**
 	 * Cron hook that runs the daily expiry sweep.
 	 */
 	public const CRON_HOOK = 'optrion_quarantine_check';
@@ -177,6 +205,20 @@ final class Quarantine {
 			return new WP_Error( 'optrion_manifest_failed', __( 'Could not record the quarantine manifest.', 'optrion' ) );
 		}
 
+		// Prime the transparent-read filter for the remainder of the request so
+		// code that calls `get_option($option_name)` after this point still
+		// sees the original value.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$stored                                   = $wpdb->get_var(
+			$wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $renamed )
+		);
+		self::$filter_value_cache[ $option_name ] = is_string( $stored ) ? maybe_unserialize( $stored ) : false;
+		self::attach_pre_option_filter( $option_name );
+		if ( ! self::$flush_registered ) {
+			self::$flush_registered = true;
+			add_action( 'shutdown', array( self::class, 'flush_access_buffer' ), 1 );
+		}
+
 		return (int) $wpdb->insert_id;
 	}
 
@@ -249,6 +291,10 @@ final class Quarantine {
 			array( '%d' )
 		);
 
+		// Release the transparent-read cache so subsequent get_option()
+		// calls in this request hit wp_options directly.
+		unset( self::$filter_value_cache[ $original ], self::$access_buffer[ $original ] );
+
 		return true;
 	}
 
@@ -301,6 +347,11 @@ final class Quarantine {
 			array( '%d' )
 		);
 
+		// Release the transparent-read cache: the renamed row is gone, so
+		// any remaining get_option() call in this request should fall
+		// through to wp_options and miss, returning the documented default.
+		unset( self::$filter_value_cache[ $manifest['original_name'] ], self::$access_buffer[ $manifest['original_name'] ] );
+
 		return true;
 	}
 
@@ -323,10 +374,14 @@ final class Quarantine {
 
 		global $wpdb;
 		$table = Schema::quarantine_table();
+		// Skip entries that have been accessed during the window. An access
+		// means the option is still in use — auto-expiry would either delete
+		// a live option or flip-flop the site by restoring it without the
+		// admin's knowledge. Hold them until the admin restores manually.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT id FROM {$table} WHERE status = %s AND expires_at <= %s",
+				"SELECT id FROM {$table} WHERE status = %s AND expires_at <= %s AND last_accessed_at IS NULL",
 				self::STATUS_ACTIVE,
 				current_time( 'mysql', true )
 			),
@@ -457,26 +512,162 @@ final class Quarantine {
 	 * @param string $option_name Option name.
 	 */
 	/**
-	 * Checks whether a quarantined option is still being read.
+	 * Checks whether a quarantined option has been accessed during the window.
 	 *
-	 * Returns true when the tracking table shows a last_read_at that is
-	 * more recent than the quarantine timestamp, which means something is
-	 * still trying to load the option.
+	 * Consults the manifest row directly: the pre_option filter set up by
+	 * {@see self::register_active_filters()} populates `last_accessed_at`
+	 * on every access during the quarantine window.
 	 *
-	 * @param array{original_name:string,quarantined_at:string} $manifest Manifest row.
+	 * @param array{last_accessed_at?:string} $manifest Manifest row.
 	 */
 	public static function is_still_accessed( array $manifest ): bool {
+		return ! empty( $manifest['last_accessed_at'] );
+	}
+
+	/**
+	 * Installs `pre_option_{name}` filters for every active quarantine.
+	 *
+	 * Called once per request from {@see Plugin::boot()}. Each filter
+	 * returns the value of the renamed `_optrion_q__<name>` row so that
+	 * calls to `get_option()` during the window behave as if the option
+	 * had never been quarantined. Every hit is buffered and flushed to
+	 * the manifest at shutdown, giving us an observational record of who
+	 * is still accessing the option.
+	 */
+	public static function register_active_filters(): void {
 		global $wpdb;
-		$table = Schema::tracking_table();
+		$table  = Schema::quarantine_table();
+		$prefix = self::RENAME_PREFIX;
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$last_read = $wpdb->get_var(
-			$wpdb->prepare( "SELECT last_read_at FROM {$table} WHERE option_name = %s", $manifest['original_name'] )
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT original_name FROM {$table} WHERE status = %s",
+				self::STATUS_ACTIVE
+			),
+			ARRAY_A
 		);
 		// phpcs:enable
-		if ( empty( $last_read ) || empty( $manifest['quarantined_at'] ) ) {
-			return false;
+		if ( empty( $rows ) ) {
+			return;
 		}
-		return $last_read > $manifest['quarantined_at'];
+
+		foreach ( (array) $rows as $row ) {
+			$original = (string) $row['original_name'];
+			if ( '' === $original ) {
+				continue;
+			}
+			$renamed = $prefix . $original;
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$stored = $wpdb->get_var(
+				$wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $renamed )
+			);
+			// phpcs:enable
+			self::$filter_value_cache[ $original ] = is_string( $stored ) ? maybe_unserialize( $stored ) : false;
+
+			self::attach_pre_option_filter( $original );
+		}
+
+		if ( ! self::$flush_registered ) {
+			self::$flush_registered = true;
+			add_action( 'shutdown', array( self::class, 'flush_access_buffer' ), 1 );
+		}
+	}
+
+	/**
+	 * Wires a `pre_option_{$original}` filter that returns the quarantined value.
+	 *
+	 * If the cache entry disappears (for example, the option was restored
+	 * or permanently deleted during this request), the callback short-
+	 * circuits with the incoming `$pre` so core's normal lookup runs.
+	 *
+	 * @param string $original_name Original option name.
+	 */
+	private static function attach_pre_option_filter( string $original_name ): void {
+		add_filter(
+			"pre_option_{$original_name}",
+			static function ( $pre ) use ( $original_name ) {
+				if ( false !== $pre ) {
+					return $pre;
+				}
+				if ( ! array_key_exists( $original_name, Quarantine::$filter_value_cache ) ) {
+					return $pre;
+				}
+				Quarantine::record_access( $original_name );
+				return Quarantine::$filter_value_cache[ $original_name ];
+			}
+		);
+	}
+
+	/**
+	 * Records an access against a quarantined option in the per-request buffer.
+	 *
+	 * @param string $original_name Original option name.
+	 */
+	public static function record_access( string $original_name ): void {
+		$reader = Tracker::identify_caller();
+		$now    = current_time( 'mysql', true );
+
+		if ( ! isset( self::$access_buffer[ $original_name ] ) ) {
+			self::$access_buffer[ $original_name ] = array(
+				'count'  => 0,
+				'last'   => $now,
+				'reader' => '',
+				'type'   => 'unknown',
+			);
+		}
+		++self::$access_buffer[ $original_name ]['count'];
+		self::$access_buffer[ $original_name ]['last'] = $now;
+		// Prefer concrete attribution (plugin/theme) over unknown/core reads.
+		$incoming = (string) ( $reader['type'] ?? 'unknown' );
+		$current  = (string) self::$access_buffer[ $original_name ]['type'];
+		$concrete = array( 'plugin', 'theme' );
+		if ( in_array( $incoming, $concrete, true ) || ! in_array( $current, $concrete, true ) ) {
+			self::$access_buffer[ $original_name ]['reader'] = (string) ( $reader['slug'] ?? '' );
+			self::$access_buffer[ $original_name ]['type']   = $incoming;
+		}
+	}
+
+	/**
+	 * Flushes the per-request access buffer into the quarantine manifest.
+	 */
+	public static function flush_access_buffer(): void {
+		if ( empty( self::$access_buffer ) ) {
+			return;
+		}
+		global $wpdb;
+		$table = Schema::quarantine_table();
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		foreach ( self::$access_buffer as $name => $entry ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$table} SET
+						last_accessed_at = %s,
+						accessor_during_quarantine = %s,
+						accessor_type_during_quarantine = %s,
+						access_count_during_quarantine = access_count_during_quarantine + %d
+					WHERE original_name = %s AND status = %s",
+					$entry['last'],
+					$entry['reader'],
+					$entry['type'],
+					$entry['count'],
+					$name,
+					self::STATUS_ACTIVE
+				)
+			);
+		}
+		// phpcs:enable
+		self::$access_buffer = array();
+	}
+
+	/**
+	 * Resets request-local state. Intended for tests.
+	 */
+	public static function reset_for_test(): void {
+		self::$filter_value_cache = array();
+		self::$access_buffer      = array();
+		self::$flush_registered   = false;
 	}
 
 	/**

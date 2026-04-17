@@ -27,6 +27,10 @@ final class Plugin {
 		// the plugin's own languages/ directory since WordPress 4.6).
 		Schema::maybe_upgrade();
 		Tracker::boot();
+		// Wire pre_option_{name} filters for every currently active
+		// quarantine so callers keep seeing the original value and every
+		// access during the window is recorded on the manifest.
+		Quarantine::register_active_filters();
 		add_action( Quarantine::CRON_HOOK, array( Quarantine::class, 'process_expired' ) );
 		add_action( 'rest_api_init', array( Rest_Controller::class, 'register_routes' ) );
 		add_action( 'admin_notices', array( self::class, 'render_active_notice' ) );
