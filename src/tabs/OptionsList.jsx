@@ -11,7 +11,8 @@ import {
 
 import { api } from '../api';
 
-const PER_PAGE = 50;
+const PER_PAGE_CHOICES = [ 25, 50, 100, 200 ];
+const DEFAULT_PER_PAGE = 50;
 
 const formatLastRead = ( iso ) => {
 	if ( ! iso ) {
@@ -42,6 +43,8 @@ const OptionsList = () => {
 	const [ notice, setNotice ] = useState( null );
 	const [ selected, setSelected ] = useState( () => new Set() );
 	const [ page, setPage ] = useState( 1 );
+	const [ perPage, setPerPage ] = useState( DEFAULT_PER_PAGE );
+	const [ pageInput, setPageInput ] = useState( '1' );
 	const [ search, setSearch ] = useState( '' );
 	const [ accessorType, setAccessorType ] = useState( '' );
 	const [ inactiveOnly, setInactiveOnly ] = useState( false );
@@ -55,7 +58,7 @@ const OptionsList = () => {
 		setError( null );
 		api.listOptions( {
 			page,
-			per_page: PER_PAGE,
+			per_page: perPage,
 			search,
 			accessor_type: accessorType,
 			inactive_only: inactiveOnly,
@@ -70,11 +73,28 @@ const OptionsList = () => {
 			} )
 			.catch( ( e ) => setError( e.message || String( e ) ) )
 			.finally( () => setLoading( false ) );
-	}, [ page, search, accessorType, inactiveOnly, autoloadOnly, orderby, order ] );
+	}, [ page, perPage, search, accessorType, inactiveOnly, autoloadOnly, orderby, order ] );
 
 	useEffect( () => {
 		load();
 	}, [ load ] );
+
+	const totalPages = Math.max( 1, Math.ceil( total / perPage ) );
+
+	useEffect( () => {
+		setPageInput( String( page ) );
+	}, [ page ] );
+
+	const goToPage = ( raw ) => {
+		const parsed = parseInt( String( raw ), 10 );
+		if ( Number.isNaN( parsed ) ) {
+			setPageInput( String( page ) );
+			return;
+		}
+		const clamped = Math.max( 1, Math.min( totalPages, parsed ) );
+		setPage( clamped );
+		setPageInput( String( clamped ) );
+	};
 
 	const isProtected = ( item ) => item && item.accessor && item.accessor.type === 'core';
 
@@ -261,6 +281,41 @@ const OptionsList = () => {
 	};
 
 
+	const bulkActions = (
+		<div className="optrion-bulk">
+			<Button
+				variant="primary"
+				onClick={ bulkQuarantine }
+				disabled={ ! selected.size }
+			>
+				{ __( 'Quarantine selected', 'optrion' ) }
+			</Button>
+			<Button
+				variant="secondary"
+				onClick={ bulkExport }
+				disabled={ ! selected.size }
+			>
+				{ __( 'Export selected', 'optrion' ) }
+			</Button>
+			<Button
+				variant="secondary"
+				isDestructive
+				onClick={ bulkDelete }
+				disabled={ ! selected.size }
+			>
+				{ __( 'Delete selected', 'optrion' ) }
+			</Button>
+			<span className="optrion-bulk__hint">
+				{ sprintf(
+					/* translators: 1: selected rows, 2: matching rows. */
+					__( '%1$d selected · %2$d matches', 'optrion' ),
+					selected.size,
+					total
+				) }
+			</span>
+		</div>
+	);
+
 	return (
 		<div className="optrion-options-list">
 			<div className="optrion-filters">
@@ -310,37 +365,7 @@ const OptionsList = () => {
 					onChange={ setShowCore }
 				/>
 			</div>
-			<div className="optrion-bulk">
-				<Button
-					variant="primary"
-					onClick={ bulkQuarantine }
-					disabled={ ! selected.size }
-				>
-					{ __( 'Quarantine selected', 'optrion' ) }
-				</Button>
-				<Button
-					variant="secondary"
-					onClick={ bulkExport }
-					disabled={ ! selected.size }
-				>
-					{ __( 'Export selected', 'optrion' ) }
-				</Button>
-				<Button
-					variant="secondary"
-					isDestructive
-					onClick={ bulkDelete }
-					disabled={ ! selected.size }
-				>
-					{ __( 'Delete selected', 'optrion' ) }
-				</Button>
-				<span className="optrion-bulk__hint">
-					{ sprintf(
-						__( '%1$d selected · %2$d matches', 'optrion' ),
-						selected.size,
-						total
-					) }
-				</span>
-			</div>
+			{ bulkActions }
 			{ notice && (
 				<Notice
 					status={ notice.type }
@@ -452,22 +477,69 @@ const OptionsList = () => {
 				</table>
 				</div>
 			) }
+			{ bulkActions }
 			<div className="optrion-pager">
 				<Button
 					disabled={ page <= 1 }
 					variant="secondary"
-					onClick={ () => setPage( ( p ) => Math.max( 1, p - 1 ) ) }
+					onClick={ () => goToPage( page - 1 ) }
 				>
 					{ __( 'Previous', 'optrion' ) }
 				</Button>
-				<span>{ sprintf( __( 'Page %d', 'optrion' ), page ) }</span>
+				<span className="optrion-pager__jump">
+					<label>
+						{ __( 'Page', 'optrion' ) }
+						<input
+							type="number"
+							min="1"
+							max={ totalPages }
+							className="optrion-pager__input"
+							value={ pageInput }
+							onChange={ ( e ) => setPageInput( e.target.value ) }
+							onBlur={ () => goToPage( pageInput ) }
+							onKeyDown={ ( e ) => {
+								if ( e.key === 'Enter' ) {
+									e.preventDefault();
+									goToPage( pageInput );
+								}
+							} }
+							aria-label={ __( 'Jump to page', 'optrion' ) }
+						/>
+					</label>
+					<span>
+						{ sprintf(
+							/* translators: %d: total number of pages. */
+							__( 'of %d', 'optrion' ),
+							totalPages
+						) }
+					</span>
+				</span>
 				<Button
-					disabled={ items.length < PER_PAGE }
+					disabled={ page >= totalPages }
 					variant="secondary"
-					onClick={ () => setPage( ( p ) => p + 1 ) }
+					onClick={ () => goToPage( page + 1 ) }
 				>
 					{ __( 'Next', 'optrion' ) }
 				</Button>
+				<SelectControl
+					className="optrion-pager__per-page"
+					label={ __( 'Per page', 'optrion' ) }
+					hideLabelFromVision
+					value={ String( perPage ) }
+					options={ PER_PAGE_CHOICES.map( ( n ) => ( {
+						label: sprintf(
+							/* translators: %d: rows per page. */
+							__( '%d / page', 'optrion' ),
+							n
+						),
+						value: String( n ),
+					} ) ) }
+					onChange={ ( v ) => {
+						setPage( 1 );
+						setPerPage( parseInt( v, 10 ) || DEFAULT_PER_PAGE );
+					} }
+					__nextHasNoMarginBottom
+				/>
 			</div>
 		</div>
 	);

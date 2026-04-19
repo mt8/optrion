@@ -96,6 +96,28 @@
 		gap: 12px;
 		align-items: center;
 		margin-top: 12px;
+		flex-wrap: wrap;
+
+		&__jump {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+
+			label {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+			}
+		}
+
+		&__input {
+			width: 60px;
+			padding: 2px 6px;
+		}
+
+		&__per-page {
+			margin-left: auto;
+		}
 	}
 
 	.optrion-accessor-type {

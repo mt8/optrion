@@ -42,7 +42,9 @@ jobs:
 
       - name: Create zip archive
         working-directory: stage
-        run: zip -r "optrion-${{ steps.version.outputs.version }}.zip" optrion
+        run: |
+          zip -r "optrion-${{ steps.version.outputs.version }}.zip" optrion
+          cp "optrion-${{ steps.version.outputs.version }}.zip" optrion.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -50,4 +52,6 @@ jobs:
           name: ${{ steps.version.outputs.version }}
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
-          files: stage/optrion-${{ steps.version.outputs.version }}.zip
+          files: |
+            stage/optrion-${{ steps.version.outputs.version }}.zip
+            stage/optrion.zip
