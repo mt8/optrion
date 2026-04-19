@@ -219,6 +219,7 @@ Legacy `1.0.0` payloads (each entry had an extra `score` object) are still accep
 - Overwrite mode (update existing rows on restore) is an explicit checkbox.
 - A dry-run preview shows add / overwrite / skip counts before the real run.
 - The `tracking` subobject is displayed for reference only; the importer never writes to the tracking table during restore.
+- The importer mirrors the same "do not touch" set as the cleaner: WordPress core options (per `CoreOptions`) are never written, and Optrion's own internal namespaces — its plugin options (`optrion_*`) and the quarantine rename namespace (owned by the manifest table) — are also refused. Skipped entries are reported in the summary.
 
 ### 4.4 Cleaner (deletion module)
 

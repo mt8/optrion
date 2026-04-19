@@ -22,9 +22,22 @@ msgstr "%s の削除に失敗しました。"
 
 #. translators: %s: option_name that was protected.
 #: includes/class-cleaner.php:48
+#: includes/class-importer.php:222
 #, php-format
 msgid "Skipped core option: %s"
 msgstr "コアオプションのためスキップしました: %s"
+
+#. translators: %s: option name.
+#: includes/class-importer.php:229
+#, php-format
+msgid "Skipped quarantine-managed option: %s"
+msgstr "検疫が管理する名前空間のためスキップしました: %s"
+
+#. translators: %s: option name.
+#: includes/class-importer.php:236
+#, php-format
+msgid "Skipped Optrion internal option: %s"
+msgstr "Optrion 内部オプションのためスキップしました: %s"
 
 #: includes/class-quarantine.php:335
 msgid "Could not delete the quarantined option row."

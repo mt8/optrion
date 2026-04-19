@@ -47,8 +47,21 @@ msgstr ""
 
 #. translators: %s: option_name that was protected.
 #: includes/class-cleaner.php:48
+#: includes/class-importer.php:222
 #, php-format
 msgid "Skipped core option: %s"
+msgstr ""
+
+#. translators: %s: option name.
+#: includes/class-importer.php:229
+#, php-format
+msgid "Skipped quarantine-managed option: %s"
+msgstr ""
+
+#. translators: %s: option name.
+#: includes/class-importer.php:236
+#, php-format
+msgid "Skipped Optrion internal option: %s"
 msgstr ""
 
 #. translators: %s: option_name that could not be deleted.

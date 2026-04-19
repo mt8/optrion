@@ -11,6 +11,7 @@ namespace Optrion\Tests;
 
 use Optrion\Exporter;
 use Optrion\Importer;
+use Optrion\Quarantine;
 use Optrion\Schema;
 use WP_UnitTestCase;
 
@@ -198,6 +199,118 @@ class ExporterImporterTest extends WP_UnitTestCase {
 	public function test_invalid_payload_returns_error(): void {
 		$result = Importer::import( (string) wp_json_encode( array( 'version' => '1.0.0' ) ), false );
 		$this->assertWPError( $result );
+	}
+
+	/**
+	 * Core options are protected from import in both modes and on both flags.
+	 */
+	public function test_import_skips_core_options(): void {
+		update_option( 'blogname', 'legitimate-site' );
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => 'blogname',
+						'option_value' => 'attacker-site',
+						'autoload'     => 'yes',
+					),
+				),
+			)
+		);
+
+		$preview = Importer::dry_run( $json );
+		$this->assertSame( 1, $preview['skip'] );
+		$this->assertSame( 0, $preview['add'] );
+		$this->assertSame( 0, $preview['overwrite'] );
+		$this->assertNotEmpty( $preview['errors'] );
+
+		$result = Importer::import( $json, true );
+		$this->assertSame( 1, $result['skipped'] );
+		$this->assertSame( 0, $result['overwritten'] );
+		$this->assertSame( 'legitimate-site', get_option( 'blogname' ) );
+	}
+
+	/**
+	 * Optrion's own internal namespace (`optrion_*`) is not importable.
+	 */
+	public function test_import_skips_optrion_internal_namespace(): void {
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => 'optrion_db_version',
+						'option_value' => '999',
+						'autoload'     => 'no',
+					),
+				),
+			)
+		);
+
+		$result = Importer::import( $json, true );
+		$this->assertSame( 1, $result['skipped'] );
+		$this->assertSame( 0, $result['added'] );
+		$this->assertSame( 0, $result['overwritten'] );
+	}
+
+	/**
+	 * The quarantine rename namespace is owned by the manifest table and is
+	 * not importable.
+	 */
+	public function test_import_skips_quarantine_rename_namespace(): void {
+		$name = Quarantine::RENAME_PREFIX . 'something';
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => $name,
+						'option_value' => 'injected',
+						'autoload'     => 'no',
+					),
+				),
+			)
+		);
+
+		$result = Importer::import( $json, false );
+		$this->assertSame( 1, $result['skipped'] );
+		$this->assertSame( 0, $result['added'] );
+		$this->assertFalse( get_option( $name, false ) );
+	}
+
+	/**
+	 * A mixed payload imports the third-party row and skips the protected ones.
+	 */
+	public function test_import_mixed_payload_imports_only_safe_entries(): void {
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => 'third_party_opt',
+						'option_value' => 'kept',
+						'autoload'     => 'no',
+					),
+					array(
+						'option_name'  => 'active_plugins',
+						'option_value' => 'a:0:{}',
+						'autoload'     => 'yes',
+					),
+					array(
+						'option_name'  => 'optrion_sampling_rate',
+						'option_value' => '1',
+						'autoload'     => 'no',
+					),
+					array(
+						'option_name'  => Quarantine::RENAME_PREFIX . 'foo',
+						'option_value' => 'x',
+						'autoload'     => 'no',
+					),
+				),
+			)
+		);
+
+		$result = Importer::import( $json, true );
+		$this->assertSame( 1, $result['added'] );
+		$this->assertSame( 3, $result['skipped'] );
+		$this->assertSame( 'kept', get_option( 'third_party_opt' ) );
 	}
 
 	/**

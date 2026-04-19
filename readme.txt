@@ -20,7 +20,7 @@ Optrion observes which options are actually read at runtime, attributes each rea
 2. **Quarantine** — rename the option temporarily so WordPress and the accessing plugin can no longer see it; confirm nothing breaks.
 3. **Delete** — the row is removed from both `wp_options` and the tracking table. Use the **Export selected** bulk action first if you want a restore copy; Optrion never writes option_value content to the server filesystem on your behalf (option_value can contain API keys, SMTP credentials, and other secrets that should not leak into backups of `wp-content/`).
 
-Core WordPress options are locked out of destructive operations.
+Core WordPress options are locked out of destructive operations, on both the deletion and the import side.
 
 == Features ==
 

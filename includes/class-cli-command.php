@@ -203,13 +203,26 @@ final class CLI_Command {
 			if ( is_wp_error( $result ) ) {
 				WP_CLI::error( $result->get_error_message() );
 			}
-			WP_CLI::log( sprintf( 'Add: %d, Overwrite: %d', $result['add'], $result['overwrite'] ) );
+			WP_CLI::log(
+				sprintf(
+					'Add: %d, Overwrite: %d, Skip: %d',
+					$result['add'],
+					$result['overwrite'],
+					$result['skip']
+				)
+			);
+			foreach ( (array) $result['errors'] as $message ) {
+				WP_CLI::warning( (string) $message );
+			}
 			return;
 		}
 
 		$result = Importer::import( $json, ! empty( $assoc_args['overwrite'] ) );
 		if ( is_wp_error( $result ) ) {
 			WP_CLI::error( $result->get_error_message() );
+		}
+		foreach ( (array) $result['errors'] as $message ) {
+			WP_CLI::warning( (string) $message );
 		}
 		WP_CLI::success(
 			sprintf(
