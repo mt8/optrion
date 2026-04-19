@@ -66,6 +66,17 @@ class CoreOptionsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Matching follows the DB collation: case-insensitive and tolerant of
+	 * trailing whitespace, so a non-canonical spelling does not slip through.
+	 */
+	public function test_contains_matches_case_and_trailing_space(): void {
+		$this->assertTrue( CoreOptions::contains( 'SITEURL' ) );
+		$this->assertTrue( CoreOptions::contains( 'SiteUrl' ) );
+		$this->assertTrue( CoreOptions::contains( 'siteurl ' ) );
+		$this->assertTrue( CoreOptions::contains( 'BlogName  ' ) );
+	}
+
+	/**
 	 * Custom entries injected via filter are honored.
 	 */
 	public function test_filter_can_extend_list(): void {

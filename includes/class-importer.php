@@ -216,21 +216,27 @@ final class Importer {
 	 * @param string $name option_name from the payload entry.
 	 */
 	private static function protected_reason( string $name ): ?string {
-		if ( CoreOptions::contains( $name ) ) {
+		// Normalize to the same shape the DB will actually compare at query
+		// time (utf8mb4 collation is case-insensitive; VARCHAR WHERE ignores
+		// trailing spaces). Guard decisions must see the same string the row
+		// lookup will match, otherwise a non-canonical spelling slips past
+		// the check while still hitting the real row on INSERT/UPDATE.
+		$normalized = strtolower( rtrim( $name ) );
+		if ( CoreOptions::contains( $normalized ) ) {
 			return sprintf(
 				/* translators: %s: option name. */
 				__( 'Skipped core option: %s', 'optrion' ),
 				$name
 			);
 		}
-		if ( 0 === strpos( $name, Quarantine::RENAME_PREFIX ) ) {
+		if ( 0 === strpos( $normalized, Quarantine::RENAME_PREFIX ) ) {
 			return sprintf(
 				/* translators: %s: option name. */
 				__( 'Skipped quarantine-managed option: %s', 'optrion' ),
 				$name
 			);
 		}
-		if ( 0 === strpos( $name, 'optrion_' ) ) {
+		if ( 0 === strpos( $normalized, 'optrion_' ) ) {
 			return sprintf(
 				/* translators: %s: option name. */
 				__( 'Skipped Optrion internal option: %s', 'optrion' ),

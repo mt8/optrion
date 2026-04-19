@@ -3,7 +3,7 @@
  * Plugin Name:       Optrion
  * Plugin URI:        https://github.com/mt8/optrion
  * Description:       Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 6.8
  * Requires PHP:      8.3
  * Author:            mt8biz
@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OPTRION_VERSION', '1.0.1' );
+define( 'OPTRION_VERSION', '1.0.2' );
 define( 'OPTRION_FILE', __FILE__ );
 define( 'OPTRION_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OPTRION_URL', plugin_dir_url( __FILE__ ) );

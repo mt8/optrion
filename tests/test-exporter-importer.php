@@ -277,6 +277,67 @@ class ExporterImporterTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The protected-name check matches on the same collation semantics the DB
+	 * uses, so non-canonical spellings (uppercase / trailing whitespace) are
+	 * rejected just like their canonical form.
+	 */
+	public function test_import_skips_non_canonical_core_names(): void {
+		update_option( 'blogname', 'legitimate-site' );
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => 'BLOGNAME',
+						'option_value' => 'attacker-a',
+						'autoload'     => 'yes',
+					),
+					array(
+						'option_name'  => 'blogname ',
+						'option_value' => 'attacker-b',
+						'autoload'     => 'yes',
+					),
+					array(
+						'option_name'  => 'BlogName ',
+						'option_value' => 'attacker-c',
+						'autoload'     => 'yes',
+					),
+				),
+			)
+		);
+
+		$result = Importer::import( $json, true );
+		$this->assertSame( 0, $result['overwritten'] );
+		$this->assertSame( 3, $result['skipped'] );
+		$this->assertSame( 'legitimate-site', get_option( 'blogname' ) );
+	}
+
+	/**
+	 * Non-canonical quarantine/internal prefixes are also rejected.
+	 */
+	public function test_import_skips_non_canonical_prefixed_names(): void {
+		$json = (string) wp_json_encode(
+			array(
+				'options' => array(
+					array(
+						'option_name'  => '_OPTRION_Q__something',
+						'option_value' => 'x',
+						'autoload'     => 'no',
+					),
+					array(
+						'option_name'  => 'Optrion_Internal',
+						'option_value' => 'x',
+						'autoload'     => 'no',
+					),
+				),
+			)
+		);
+
+		$result = Importer::import( $json, false );
+		$this->assertSame( 2, $result['skipped'] );
+		$this->assertSame( 0, $result['added'] );
+	}
+
+	/**
 	 * A mixed payload imports the third-party row and skips the protected ones.
 	 */
 	public function test_import_mixed_payload_imports_only_safe_entries(): void {

@@ -162,9 +162,17 @@ final class CoreOptions {
 	/**
 	 * Checks whether the given option name is in the core list.
 	 *
+	 * The comparison matches the `wp_options.option_name` column's collation
+	 * semantics: case-insensitive, and trailing whitespace is ignored (MySQL
+	 * VARCHAR uses PAD SPACE semantics in WHERE clauses). This keeps the
+	 * guard aligned with the underlying storage so that a non-canonical
+	 * spelling cannot slip past the check while still matching the stored
+	 * row at query time.
+	 *
 	 * @param string $option_name Raw option_name from wp_options.
 	 */
 	public static function contains( string $option_name ): bool {
-		return in_array( $option_name, self::all(), true );
+		$normalized = strtolower( rtrim( $option_name ) );
+		return in_array( $normalized, self::all(), true );
 	}
 }
