@@ -1,6 +1,6 @@
 {
   "name": "optrion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Track which plugin or theme accesses each wp_options row, then quarantine or clean orphans.",
   "private": true,
   "license": "GPL-2.0-or-later",

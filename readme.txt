@@ -4,7 +4,7 @@ Tags: options, database, cleanup, performance, autoload
 Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.3
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,9 @@ Use Quarantine first. A quarantined option is renamed, not deleted; if anything 
 Uninstalling restores any active quarantines to their original names, drops the custom tracking and quarantine tables, removes plugin-owned options, and clears the scheduled cron job. Your regular `wp_options` data is untouched.
 
 == Changelog ==
+
+= 1.0.1 =
+* Hardened the importer to mirror the cleaner's protected-name set: WordPress core options, Optrion's own internal options (`optrion_*`), and the quarantine rename namespace are skipped instead of being written to `wp_options`. Skipped entries are reported in the import summary and the WP-CLI output.
 
 = 1.0.0 =
 * Initial public release.
